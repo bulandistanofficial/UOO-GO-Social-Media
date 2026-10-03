@@ -135,6 +135,50 @@
       height: 18px;
     }
 
+    .uoo-coin-icon{
+      display:inline-flex;width:23px;height:23px;align-items:center;justify-content:center;
+      border:2px solid #d99b00;border-radius:50%;font-size:10px;font-weight:950;line-height:1;
+      vertical-align:middle;box-sizing:border-box;color:#6d4700;
+      background:linear-gradient(145deg,#fff36a 0%,#ffd21f 48%,#f4ad00 100%);
+      box-shadow:inset 0 1px 1px rgba(255,255,255,.9),0 2px 5px rgba(214,151,0,.28);
+      text-shadow:none;
+    }
+    .uoo-coin-icon.large{width:42px;height:42px;border-width:3px;font-size:17px;box-shadow:inset 0 2px 2px rgba(255,255,255,.95),0 5px 14px rgba(214,151,0,.30)}
+    .coin-modal-card{width:min(560px,100%);padding:22px}
+    .coin-modal-card h2{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+    .gift-video-btn{border:0;border-radius:999px;padding:8px 12px;cursor:pointer;background:rgba(255,255,255,.96);color:#111;font-weight:850;box-shadow:0 2px 10px rgba(0,0,0,.18);transition:.18s}
+    .gift-video-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.22)}
+    .coin-wallet{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0;padding:14px 16px;border-radius:18px;background:linear-gradient(135deg,#fffdf0,#fff7cf);border:1px solid #f4d56a;box-shadow:0 5px 18px rgba(214,151,0,.10)}
+    .coin-wallet .wallet-balance{display:flex;align-items:center;gap:9px;font-weight:800}
+    .small-btn{width:auto!important;padding:9px 14px!important}
+    .coin-packages,.gift-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}
+    .coin-package,.gift-option{border:1px solid var(--line);background:var(--card-bg);border-radius:18px;padding:15px;cursor:pointer;text-align:center;transition:.18s;box-shadow:0 3px 12px rgba(0,0,0,.035)}
+    .coin-package:hover,.gift-option:hover{transform:translateY(-2px);border-color:#f2c94c;box-shadow:0 8px 22px rgba(0,0,0,.08)}
+    .coin-package strong{display:flex;align-items:center;justify-content:center;gap:7px}
+    .coin-package span,.gift-option small{display:block;margin-top:7px;opacity:.78}
+    .gift-icon{display:block;font-size:38px;line-height:1;margin-bottom:9px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.12))}
+    .gift-page-head{padding:14px;border-radius:18px;background:linear-gradient(135deg,#fff8d8,#fff);border:1px solid #f4d56a;margin:12px 0 15px}
+    .gift-page-head .gift-balance{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .gift-page-head .gift-balance strong{font-size:20px}
+    .gift-page-head .gift-sub{font-size:12px;color:var(--muted);margin-top:3px}
+    .gift-section-label{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:15px 2px 8px}
+    .gift-send-card{border:1px solid var(--line);border-radius:18px;padding:13px;background:var(--card-bg);margin-top:12px}
+    .gift-send-card .send-row{display:flex;align-items:center;gap:10px}
+    .gift-send-card .send-row .send-copy{flex:1}
+    .gift-send-card .send-copy strong{display:block;font-size:14px}
+    .gift-send-card .send-copy small{color:var(--muted)}
+    .gift-send-card .gift-mini{font-size:28px}
+    .gift-comment{display:flex;align-items:center;gap:10px;margin-top:8px;padding:9px 11px;border-radius:14px;background:linear-gradient(135deg,#fff9df,#fff);border:1px solid #f3d46b}
+    .gift-comment .gift-comment-icon{font-size:27px;line-height:1}
+    .gift-comment .gift-comment-copy{flex:1;min-width:0}
+    .gift-comment .gift-comment-copy strong{display:block}
+    .gift-comment .gift-comment-copy small{display:block;color:#9a7200;font-weight:800;margin-top:2px}
+    .gift-comment .gift-coin-cost{display:flex;align-items:center;gap:4px;font-weight:900;color:#7b5700;font-size:12px}
+
+    .coin-wallet{margin:0 0 12px!important}
+    .studio-card .primary:disabled{opacity:.55;cursor:not-allowed}
+    .coin-package span{font-weight:800}
+    .payment-instructions{margin:12px 0;padding:12px;border-radius:14px;background:rgba(127,127,127,.08);font-size:13px;line-height:1.45}
     .uoo-ad-slot {
       width: 100%;
       margin: 8px 0 24px;
@@ -156,6 +200,7 @@
     }
 
     @media (max-width: 720px) {
+      .coin-packages,.gift-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.coin-wallet{flex-direction:column;align-items:stretch}.coin-wallet .small-btn{width:100%!important}
       .profile-top-logout {
         top: 8px;
         right: 8px;
@@ -411,7 +456,8 @@
       backdrop-filter: blur(4px); z-index: 100; display: none;
       place-items: center; padding: 18px;
     }
-    .modal.open { display: grid; }
+    .modal.open { display: grid; z-index: 999999; }
+    .modal.show { display: grid; z-index: 999999; }
     .modal-card {
       background: var(--modal-bg); width: min(520px, 100%);
       max-height: 88vh; overflow-y: auto; border-radius: 24px;
@@ -1092,6 +1138,162 @@
     function user(id) { return allUsers.find(u => u.id === id) || { name: "Unknown", username: "unknown", avatar: avatars[0] }; }
     function likedCount(id) { return allVideos.filter(v => (v.likes || []).includes(id)).length; }
 
+    const COIN_PACKAGES=[{coins:100,price:100},{coins:500,price:500},{coins:1000,price:1000},{coins:5000,price:5000}];
+    const COIN_SELL_RATE=0.5; // Sell/withdraw: 100 Coins = PKR 50
+    const MONETIZATION_CRITERIA={followers:5000,likes:50000};
+    const GIFT_OPTIONS=[{id:"heart",icon:"❤️",name:"Heart",coins:10},{id:"rose",icon:"🌹",name:"Rose",coins:50},{id:"gift",icon:"🎁",name:"Gift",coins:100},{id:"diamond",icon:"💎",name:"Diamond",coins:500}];
+    function coinBalance(u=me()){return Number(u?.coins||0);}
+    async function saveCoins(coins){const u={...me(),coins:Math.max(0,Number(coins||0))};currentUser=u;const i=allUsers.findIndex(x=>x.id===u.id);if(i>=0)allUsers[i]=u;await fbSaveUser(u);}
+    function showModalHTML(id,html){
+      let e=document.getElementById(id);
+      if(!e){
+        e=document.createElement("div");
+        e.id=id;
+        e.className="modal";
+        document.body.appendChild(e);
+      }
+      e.innerHTML=html;
+      e.classList.add("open");
+      document.body.style.overflow="hidden";
+    }
+    function coinIcon(extra=""){return `<span class="uoo-coin-icon ${extra}">C</span>`;}
+    function openCoinsPage(){
+      if(!me()) return openModal("authModal");
+      showModalHTML("coinsModal",`<div class="modal-card coin-modal-card">
+        <button class="modal-close" onclick="closeModal('coinsModal')">×</button>
+        <h2>${coinIcon("large")} UOO GO Coins</h2>
+        <div class="gift-page-head">
+          <div class="gift-balance"><div><div class="gift-sub">Available balance</div><strong>${coinBalance().toLocaleString()} Coins</strong></div>${coinIcon("large")}</div>
+          <div class="gift-sub">Buy coins at 100 Coins = PKR 100. Use them to send gifts on videos.</div>
+        </div>
+        <div class="gift-section-label">Coin packages</div>
+        <div class="coin-packages">${COIN_PACKAGES.map(p=>`<button class="coin-package" onclick="openCoinPurchaseForm(${p.coins},${p.price})"><strong>${coinIcon()} ${p.coins.toLocaleString()} Coins</strong><span>PKR ${p.price.toLocaleString()}</span></button>`).join("")}</div>
+      </div>`);
+    }
+    function openCoinPurchaseForm(coins,price){
+      showModalHTML("coinPurchaseModal",`<div class="modal-card coin-modal-card">
+        <button class="modal-close" onclick="closeModal('coinPurchaseModal')">×</button>
+        <h2>${coinIcon("large")} Buy ${coins.toLocaleString()} Coins</h2>
+        <p class="muted">Price: <b>PKR ${price.toLocaleString()}</b></p>
+        <div class="payment-instructions"><b>Pakistan Payment — Easypaisa</b><br>Send <b>PKR ${price.toLocaleString()}</b> to <b>03455672710</b> (Ishrat Bibi). After payment, submit your WhatsApp number and transaction/reference details. Admin will verify the payment before adding coins.</div>
+        <form onsubmit="submitCoinPurchase(event,${coins},${price})">
+          <label>Name<input id="coinBuyerName" required value="${esc(me()?.name||"")}"></label>
+          <label>Your WhatsApp Number<input id="coinBuyerWhatsapp" required placeholder="03XXXXXXXXX"></label>
+          <label>Easypaisa Transaction / Reference<input id="coinPaymentDetails" required placeholder="Transaction ID / sender details"></label>
+          <button class="primary" type="submit">Send Coin Purchase Request</button>
+        </form>
+      </div>`);
+    }
+
+    async function submitCoinPurchase(e,coins,price){
+      e.preventDefault();
+      if(!me()) return openModal("authModal");
+      try{
+        const req={id:uid("coinbuy"),userId:me().id,userName:document.getElementById("coinBuyerName").value.trim(),whatsapp:document.getElementById("coinBuyerWhatsapp").value.trim(),paymentMethod:"Easypaisa",paymentNumber:"03455672710",paymentName:"Ishrat Bibi",transactionDetails:document.getElementById("coinPaymentDetails").value.trim(),coins:Number(coins),price:Number(price),status:"pending",created:Date.now()};
+        await fbSaveCoinPurchaseRequest(req);
+        closeModal("coinPurchaseModal");
+        toast("Purchase request sent. Coins will be added after payment verification.");
+      }catch(err){ console.error(err); toast(err?.message||"Could not send purchase request."); }
+    }
+    function openGiftModal(videoId,receiverId){
+      if(!me()) return openModal("authModal");
+      if(me().id===receiverId) return toast("You cannot send a gift to yourself.");
+      const receiver=user(receiverId);
+      showModalHTML("giftModal",`<div class="modal-card coin-modal-card">
+        <button class="modal-close" onclick="closeModal('giftModal')">×</button>
+        <h2>🎁 Send a Gift</h2>
+        <p class="muted">Send a gift to <b>@${esc(receiver.username)}</b></p>
+        <div class="gift-page-head">
+          <div class="gift-balance"><div><div class="gift-sub">Your balance</div><strong>${coinBalance().toLocaleString()} Coins</strong></div>${coinIcon("large")}</div>
+          <div class="gift-sub">Tap a gift to send it instantly. Coins are deducted from your wallet and added to the creator’s wallet.</div>
+        </div>
+        <div class="gift-section-label">Choose a gift</div>
+        <div class="gift-grid">${GIFT_OPTIONS.map(g=>`<button type="button" class="gift-option" onclick="event.stopPropagation();sendGift('${esc(videoId)}','${esc(receiverId)}','${g.id}')"><span class="gift-icon">${g.icon}</span><strong>${esc(g.name)}</strong><small>${coinIcon()} ${g.coins} Coins</small></button>`).join("")}</div>
+        <button class="secondary full" style="margin-top:14px;padding:12px;border-radius:14px;background:var(--input-bg);font-weight:800" onclick="closeModal('giftModal');openCoinsPage()">+ Buy More Coins</button>
+      </div>`);
+    }
+    async function sendGift(videoId,receiverId,giftId){
+      try{
+        if(!me()) return openModal("authModal");
+        const sender=me();
+        const receiver=user(receiverId);
+        const g=GIFT_OPTIONS.find(x=>x.id===giftId);
+        if(!g) return toast("Gift not found.");
+        if(sender.id===receiverId) return toast("You cannot send a gift to yourself.");
+        if(!receiver || !receiver.id) return toast("Receiver not found.");
+        if(coinBalance(sender)<g.coins) return toast("Not enough coins. Buy more coins from your Profile.");
+        const v=allVideos.find(x=>x.id===videoId);
+        if(!v) return toast("Video not found.");
+
+        const now=Date.now();
+        const giftRecord={
+          id:uid("gift"),
+          videoId,
+          fromUserId:sender.id,
+          toUserId:receiverId,
+          giftId:g.id,
+          giftName:g.name,
+          icon:g.icon,
+          coins:Number(g.coins),
+          created:now
+        };
+
+        // A gift is also shown as a special comment on the video.
+        // The creator/receiver can reply to this gift comment just like a normal comment.
+        const giftComment={
+          id:uid("cgift"),
+          userId:sender.id,
+          type:"gift",
+          text:`Sent ${g.name}`,
+          giftId:g.id,
+          giftName:g.name,
+          giftIcon:g.icon,
+          giftCoins:Number(g.coins),
+          created:now,
+          likes:[],
+          replies:[]
+        };
+        v.comments=v.comments||[];
+        v.comments.push(giftComment);
+
+        const senderAfter={...sender,coins:Math.max(0,coinBalance(sender)-Number(g.coins))};
+        const receiverAfter={...receiver,coins:coinBalance(receiver)+Number(g.coins)};
+
+        const n={
+          id:uid("n"),
+          toUserId:receiverId,
+          type:"gift",
+          text:`${sender.name} sent you a ${g.name} ${g.icon}. +${g.coins} Coins added to your wallet.`,
+          videoId,
+          commentId:giftComment.id,
+          fromUserId:sender.id,
+          created:now,
+          read:false
+        };
+        allNotifications.unshift(n);
+
+        // Save both wallets so the receiver can immediately reuse or withdraw earned coins.
+        await fbSaveGift(giftRecord);
+        await Promise.all([fbSaveUser(senderAfter),fbSaveUser(receiverAfter)]);
+        currentUser=senderAfter;
+        const senderIndex=allUsers.findIndex(x=>x.id===senderAfter.id);
+        if(senderIndex>=0) allUsers[senderIndex]=senderAfter;
+        const receiverIndex=allUsers.findIndex(x=>x.id===receiverAfter.id);
+        if(receiverIndex>=0) allUsers[receiverIndex]=receiverAfter;
+        await fbSaveVideo(v);
+        try{await fbSaveNotification(n);}catch(err){console.warn("Gift notification save failed:",err);}
+
+        closeModal("giftModal");
+        render();
+        toast(`${g.icon} ${g.name} sent! ${g.coins} Coins added to @${receiver.username}.`);
+      }catch(err){
+        console.error("Gift send error:",err);
+        toast(err?.message||"Could not send gift.");
+      }
+    }
+    async function fbSaveCoinPurchaseRequest(r){if(!window._firebaseReady||!fb())throw new Error("Firebase is not ready.");const {db,ref,set,auth}=fb();if(!auth?.currentUser)throw new Error("Please log in again.");await set(ref(db,"coinPurchaseRequests/"+r.id),r);}
+    async function fbSaveGift(g){if(!window._firebaseReady||!fb())throw new Error("Firebase is not ready.");const {db,ref,set,auth}=fb();if(!auth?.currentUser)throw new Error("Please log in again.");await set(ref(db,"gifts/"+g.id),g);}
+
     async function init() {
       if (appStarted) return;
       appStarted = true;
@@ -1132,7 +1334,7 @@
           email: (firebaseUser.email || "").toLowerCase(),
           bio: "", link: "",
           avatar: firebaseUser.photoURL || `https://i.pravatar.cc/150?u=${encodeURIComponent(firebaseUser.uid)}`,
-          followers: [], following: [], created: Date.now()
+          followers: [], following: [], coins: 0, created: Date.now()
         };
 
         let profile = allUsers.find(u => u.id === firebaseUser.uid) || fallbackProfile;
@@ -1233,6 +1435,7 @@
       <button class="nav-btn" onclick="openModal('uploadModal')"><span class="nav-icon">${ICONS.upload}</span><span>Upload</span></button>
       <button class="nav-btn ${currentSection==='notifications'?'active':''}" onclick="openNotificationsPage()"><span class="nav-icon">${ICONS.bell}</span><span>Notifications</span></button>
       <button class="nav-btn ${currentSection==='studio'?'active':''}" onclick="openStudioPage()"><span class="nav-icon">${ICONS.studio}</span><span>Creator Studio</span></button>
+      <button class="nav-btn" onclick="openCoinsPage()"><span class="nav-icon">${coinIcon()}</span><span>Coins</span></button>
       <button class="nav-btn" onclick="showProfilePage('${me().id}')"><span class="nav-icon">${ICONS.user}</span><span>Profile</span></button>
       <button class="nav-btn logout-btn" onclick="logout()"><span class="nav-icon">${ICONS.logout}</span><span>Logout</span></button>`;
     }
@@ -1494,6 +1697,7 @@
             <button class="action" onclick="openComments('${v.id}')">${ICONS.comment}<span>${(v.comments||[]).length}</span></button>
             <button class="action" onclick="downloadVideo('${v.id}')">${ICONS.download}<span>Save</span></button>
             <button class="action" onclick="shareVideo('${v.id}')">${ICONS.share}<span>Share</span></button>
+            <button class="gift-video-btn" onclick="event.stopPropagation();openGiftModal('${esc(v.id)}','${esc(v.userId)}')">🎁 Gift</button>
             ${mine
               ? `<button class="action" onclick="askDelete('${v.id}')">${ICONS.trash}<span>Delete</span></button>`
               : `<button class="action" onclick="showProfilePage('${u.id}')">${ICONS.user}<span>Profile</span></button>`}
@@ -1649,6 +1853,7 @@
             <div><strong>${(u.followers||[]).length}</strong><small>Followers</small></div>
             <div><strong>${likedCount(u.id)}</strong><small>Likes</small></div>
           </div>
+          ${mine ? `<div class="coin-wallet"><span><span class="uoo-coin-icon">C</span> <b>${coinBalance(u).toLocaleString()}</b> Coins</span><button class="primary small-btn" onclick="openCoinsPage()">Buy Coins</button></div>` : ""}
           <div class="profile-actions">
             ${mine ? `<button class="edit-btn" onclick="openEditProfile()">Edit Profile</button>` :
               `<button class="primary" onclick="toggleFollow('${u.id}');showProfilePage('${u.id}')">${(me().following||[]).includes(u.id) ? "Following" : "Follow"}</button>`}
@@ -1760,46 +1965,65 @@
       document.getElementById("studioPageContent").innerHTML = studioHTML();
       openFullPage("studioPage");
     }
+    function openWithdrawPage(){
+      if(!me()) return openModal("authModal");
+      const coins=coinBalance();
+      const cash=(coins*COIN_SELL_RATE).toFixed(2);
+      showModalHTML("withdrawModal",`<div class="modal-card coin-modal-card">
+        <button class="modal-close" onclick="closeModal('withdrawModal')">×</button>
+        <h2>💸 Withdraw Coins</h2>
+        <div class="gift-page-head"><div class="gift-balance"><div><div class="gift-sub">Available balance</div><strong>${coins.toLocaleString()} Coins</strong></div>${coinIcon("large")}</div><div class="gift-sub">100 Coins = PKR 50 • 1 Coin = PKR 0.50</div></div>
+        <form onsubmit="submitWithdraw(event)">
+          <label>Coins to Withdraw<input id="withdrawCoins" type="number" min="100" step="100" max="${coins}" required placeholder="100" oninput="document.getElementById('withdrawValue').textContent='PKR '+((Number(this.value)||0)*${COIN_SELL_RATE}).toFixed(2)"></label>
+          <div class="payment-instructions">Cash value: <b id="withdrawValue">PKR 0.00</b><br>Enter your own WhatsApp number below. UOO GO will use the submitted details to process the withdrawal.</div>
+          <label>Your WhatsApp Number<input id="withdrawWhatsapp" required placeholder="03XXXXXXXXX"></label>
+          <label>Account / payment details<textarea id="withdrawDetails" required placeholder="Your Easypaisa/JazzCash account name and number"></textarea></label>
+          <button class="primary" type="submit">Send Withdrawal Request</button>
+        </form>
+      </div>`);
+    }
+    async function submitWithdraw(e){
+      e.preventDefault();
+      if(!me()) return;
+      const coins=Number(document.getElementById("withdrawCoins").value||0);
+      if(coins<100 || coins%100!==0) return toast("Minimum withdrawal is 100 coins and must be in 100-coin steps.");
+      if(coins>coinBalance()) return toast("Not enough coins.");
+      try{
+        const req={id:uid("withdraw"),userId:me().id,userName:me().name,username:me().username,coins,cashPKR:Number((coins*COIN_SELL_RATE).toFixed(2)),whatsapp:document.getElementById("withdrawWhatsapp").value.trim(),paymentDetails:document.getElementById("withdrawDetails").value.trim(),status:"pending",created:Date.now()};
+        await fbSaveWithdrawalRequest(req);
+        closeModal("withdrawModal");
+        toast("Withdrawal request sent to admin.");
+      }catch(err){ console.error(err); toast(err?.message||"Could not send withdrawal request."); }
+    }
+    async function applyCreatorRewards(){
+      if(!me()) return openModal("authModal");
+      const m=me(), vids=allVideos.filter(v=>v.userId===m.id);
+      const followers=(m.followers||[]).length, likes=vids.reduce((a,v)=>a+(v.likes||[]).length,0), views=vids.reduce((a,v)=>a+(v.views||0),0);
+      if(followers<MONETIZATION_CRITERIA.followers || likes<MONETIZATION_CRITERIA.likes) return toast("Creator Rewards criteria not completed yet.");
+      try{ await fbSaveCreatorApplication({id:uid("creatorapp"),userId:m.id,userName:m.name,username:m.username,followers,likes,views,status:"pending",created:Date.now()}); toast("Creator Rewards application sent to admin."); openStudioPage(); }catch(err){toast(err?.message||"Could not send application.");}
+    }
+    async function fbSaveWithdrawalRequest(r){const {db,ref,set,auth}=fb();if(!auth?.currentUser)throw new Error("Please log in again.");await set(ref(db,"withdrawalRequests/"+r.id),r);}
+    async function fbSaveCreatorApplication(r){const {db,ref,set,auth}=fb();if(!auth?.currentUser)throw new Error("Please log in again.");await set(ref(db,"creatorRewardsApplications/"+r.id),r);}
+
     function studioHTML() {
       const m = me();
       const vids = allVideos.filter(v => v.userId === m.id);
       const likes = vids.reduce((a,v) => a + (v.likes||[]).length, 0);
       const views = vids.reduce((a,v) => a + (v.views||0), 0);
       const followers = (m.followers||[]).length;
-      const pct = Math.min(100, (followers/5000)*100);
-      const likePct = Math.min(100, (likes/50000)*100);
+      const pct = Math.min(100, (followers/MONETIZATION_CRITERIA.followers)*100);
+      const likePct = Math.min(100, (likes/MONETIZATION_CRITERIA.likes)*100);
       const week = Date.now() - 7*86400000;
       const weekViews = vids.filter(v => v.created >= week).reduce((a,v) => a + (v.views||0), 0);
+      const eligible = followers >= MONETIZATION_CRITERIA.followers && likes >= MONETIZATION_CRITERIA.likes;
       return `<section class="studio">
-        <h1>Creator Studio</h1>
-        <p class="muted">Your UOO GO creator dashboard.</p>
+        <h1>Creator Studio</h1><p class="muted">Your UOO GO creator dashboard.</p>
         <div class="studio-grid">
-          <div class="metric"><span>Total Videos</span><strong>${vids.length}</strong></div>
-          <div class="metric"><span>Total Views</span><strong>${formatViews(views)}</strong></div>
-          <div class="metric"><span>Total Likes</span><strong>${formatViews(likes)}</strong></div>
-          <div class="metric"><span>7 Day Views</span><strong>${formatViews(weekViews)}</strong></div>
+          <div class="metric"><span>Total Videos</span><strong>${vids.length}</strong></div><div class="metric"><span>Total Views</span><strong>${formatViews(views)}</strong></div><div class="metric"><span>Total Likes</span><strong>${formatViews(likes)}</strong></div><div class="metric"><span>7 Day Views</span><strong>${formatViews(weekViews)}</strong></div>
         </div>
-        <div class="studio-card">
-          <h2>Monetization progress</h2>
-          <p class="muted">Requirement: 5,000 followers + 50,000 likes</p>
-          <p>Followers: <b>${followers}</b> / 5,000</p>
-          <div class="progress"><i style="width:${pct}%"></i></div>
-          <p>Likes: <b>${likes}</b> / 50,000</p>
-          <div class="progress"><i style="width:${likePct}%"></i></div>
-          <strong>${followers >= 5000 && likes >= 50000 ? "Eligible for your configured milestone" : "Milestone not reached yet"}</strong>
-        </div>
-        <div class="studio-card">
-          <h2>My videos</h2>
-          ${vids.length ? vids.map(v => `
-            <div class="user-row">
-              <div class="grow">
-                <strong>${esc(v.caption.slice(0,55))}</strong>
-                <div class="muted">${v.views} views • ${(v.likes||[]).length} likes • ${(v.comments||[]).length} comments</div>
-              </div>
-              <button onclick="askDelete('${v.id}')" style="background:#fe2c55;color:#fff;margin-right:6px">Delete</button>
-              <button onclick="openComments('${v.id}')">Comments</button>
-            </div>`).join("") : "<p class='muted'>Upload your first video.</p>"}
-        </div>
+        <div class="studio-card"><h2>🪙 Coin Wallet</h2><div class="coin-wallet"><div class="wallet-balance">${coinIcon("large")} <span><b>${coinBalance().toLocaleString()}</b> Coins<br><small>Value: PKR ${(coinBalance()*COIN_SELL_RATE).toFixed(2)}</small></span></div><button class="primary small-btn" onclick="openCoinsPage()">Buy Coins</button></div><button class="primary full" onclick="openWithdrawPage()">💸 Withdraw Coins</button></div>
+        <div class="studio-card"><h2>Creator Rewards Program</h2><p class="muted">Current configured criteria:</p><p>• ${MONETIZATION_CRITERIA.followers.toLocaleString()} followers</p><p>• ${MONETIZATION_CRITERIA.likes.toLocaleString()} total likes</p><p>• Consistent original content and a compliant account are reviewed by admin.</p><div class="progress"><i style="width:${pct}%"></i></div><p>Followers: <b>${followers}</b> / ${MONETIZATION_CRITERIA.followers.toLocaleString()}</p><div class="progress"><i style="width:${likePct}%"></i></div><p>Likes: <b>${likes}</b> / ${MONETIZATION_CRITERIA.likes.toLocaleString()}</p><button class="primary full" ${eligible?'':'disabled'} onclick="applyCreatorRewards()">${eligible?'Apply for Creator Rewards':'Complete criteria to apply'}</button></div>
+        <div class="studio-card"><h2>My videos</h2>${vids.length ? vids.map(v=>`<div class="user-row"><div class="grow"><strong>${esc(v.caption.slice(0,55))}</strong><div class="muted">${v.views} views • ${(v.likes||[]).length} likes • ${(v.comments||[]).length} comments</div></div><button onclick="askDelete('${v.id}')" style="background:#fe2c55;color:#fff;margin-right:6px">Delete</button><button onclick="openComments('${v.id}')">Comments</button></div>`).join("") : "<p class='muted'>Upload your first video.</p>"}</div>
       </section>`;
     }
 
@@ -1960,6 +2184,47 @@
       return comments.map(c => {
         const u = user(c.userId);
         const cLiked = (c.likes || []).includes(me().id);
+        if (c.type === "gift" || c.giftId) {
+          return `<div class="comment">
+            <img class="comment-avatar" src="${esc(u.avatar)}">
+            <div class="comment-body">
+              <strong>@${esc(u.username)}</strong>
+              <div class="gift-comment">
+                <span class="gift-comment-icon">${esc(c.giftIcon || "🎁")}</span>
+                <div class="gift-comment-copy">
+                  <strong>Sent ${esc(c.giftName || "Gift")}</strong>
+                  <small>Gift sent to the creator • ${Number(c.giftCoins || 0)} Coins added to creator wallet</small>
+                </div>
+                <span class="gift-coin-cost"><span class="uoo-coin-icon">C</span>${Number(c.giftCoins || 0)}</span>
+              </div>
+              <div class="comment-meta">${new Date(c.created).toLocaleString()}</div>
+              <div class="comment-actions">
+                <button class="comment-like ${cLiked ? 'liked' : ''}" onclick="toggleCommentLike('${c.id}')">
+                  ${ICONS.heart} <span>${(c.likes || []).length || ''}</span>
+                </button>
+                <button class="comment-reply" onclick="replyTo('${c.id}')">Reply</button>
+              </div>
+              <form id="reply-box-${c.id}" class="reply-composer hidden" onsubmit="submitReply(event,'${c.id}')">
+                <input placeholder="Write a reply..." maxlength="250" required>
+                <button class="primary">Send</button>
+              </form>
+              ${(c.replies || []).map(r => {
+                const ru = user(r.userId);
+                const rLiked = (r.likes || []).includes(me().id);
+                return `<div class="reply">
+                  <strong>@${esc(ru.username)}</strong>
+                  <div>${esc(r.text)}</div>
+                  <small class="comment-meta">${new Date(r.created).toLocaleString()}</small>
+                  <div class="reply-actions">
+                    <button class="reply-like ${rLiked ? 'liked' : ''}" onclick="toggleReplyLike('${c.id}','${r.id}')">
+                      ${ICONS.heart} <span>${(r.likes || []).length || ''}</span>
+                    </button>
+                  </div>
+                </div>`;
+              }).join("")}
+            </div>
+          </div>`;
+        }
         return `<div class="comment">
           <img class="comment-avatar" src="${esc(u.avatar)}">
           <div class="comment-body">
@@ -2286,6 +2551,7 @@
           avatar: `https://i.pravatar.cc/150?u=${encodeURIComponent(email)}`,
           followers: [],
           following: [],
+          coins: 0,
           created: Date.now()
         };
 
@@ -2371,6 +2637,12 @@
     window.saveProfile = saveProfile;
     window.onAvatarPick = onAvatarPick;
     window.openStudioPage = openStudioPage;
+    window.openCoinsPage = openCoinsPage;
+    window.openCoinPurchaseForm = openCoinPurchaseForm;
+    window.submitCoinPurchase = submitCoinPurchase;
+    window.openWithdrawPage = openWithdrawPage;
+    window.submitWithdraw = submitWithdraw;
+    window.applyCreatorRewards = applyCreatorRewards;
     window.openNotificationsPage = openNotificationsPage;
     window.handleNotificationClick = handleNotificationClick;
     window.askDelete = askDelete;
