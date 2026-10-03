@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>UOO GO — Short Video Social</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #ffffff; --soft: #f5f5f7; --text: #101014; --muted: #777983;
+      --line: #e7e7ea; --brand: #fe2c55; --brand2: #7c3aed; --dark: #111;
+      --shadow: 0 8px 30px rgba(0,0,0,0.06); --radius: 20px; --radius-sm: 12px;
+      --nav-height: 64px; --top-height: 60px; --card-bg: #ffffff;
+      --overlay-grad: linear-gradient(transparent, rgba(0,0,0,0.65));
+      --input-bg: #f2f2f4; --sidebar-hover: #fff0f3; --modal-bg: #ffffff;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.4;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      overscroll-behavior-y: none;
+    }
+    button, input, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; background: transparent; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    img, video { display: block; max-width: 100%; }
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); }
+
+    #splash {
+      position: fixed; inset: 0; background: var(--bg);
+      display: grid; place-items: center; z-index: 9999;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    #splash.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+    .splash-brand {
+      font-size: 58px; font-weight: 950; letter-spacing: -3px;
+      animation: splashPulse 1.2s ease-in-out infinite;
+    }
+    .splash-brand span { color: var(--brand); }
+    @keyframes splashPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.06); opacity: 0.85; }
+    }
+
+    .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+    .topbar {
+      height: var(--top-height); position: fixed; top: 0; left: 0; right: 0;
+      background: var(--bg); border-bottom: 1px solid var(--line);
+      z-index: 40; display: flex; align-items: center;
+      padding: 0 16px; gap: 10px;
+    }
+    .topbar .brand { font-size: 22px; font-weight: 950; letter-spacing: -1px; flex-shrink: 0; }
+    .topbar .brand span { color: var(--brand); }
+    .top-tabs {
+      display: flex; gap: 4px; background: var(--input-bg);
+      padding: 4px; border-radius: 40px; align-items: center; flex-shrink: 0;
+    }
+    .top-tabs button {
+      padding: 8px 16px; border-radius: 30px; font-weight: 800;
+      font-size: 13px; color: var(--muted); transition: all 0.2s ease; white-space: nowrap;
+    }
+    .top-tabs button.active {
+      background: var(--card-bg); color: var(--text); box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .top-search {
+      flex: 1; max-width: 500px; height: 42px; background: var(--input-bg);
+      border-radius: 14px; display: flex; align-items: center;
+      padding: 0 14px; gap: 9px; transition: background 0.2s, box-shadow 0.2s; margin: 0 auto;
+    }
+    .top-search:focus-within { background: var(--card-bg); box-shadow: 0 0 0 2px var(--brand); }
+    .top-search svg { width: 20px; height: 20px; color: var(--muted); flex-shrink: 0; }
+    .top-search input { border: 0; outline: 0; background: transparent; width: 100%; font-size: 14px; color: var(--text); }
+    .top-search input::placeholder { color: var(--muted); }
+    .top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .avatar-btn {
+      width: 40px; height: 40px; border-radius: 50%; overflow: hidden;
+      background: var(--input-bg); flex-shrink: 0;
+    }
+    .avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+
+    .main {
+      flex: 1; padding-top: var(--top-height); display: flex;
+      justify-content: center; max-width: 1320px; margin: 0 auto;
+      width: 100%; gap: 24px; padding-left: 16px; padding-right: 16px;
+    }
+    .sidebar {
+      width: 220px; flex-shrink: 0; position: sticky;
+      top: calc(var(--top-height) + 16px);
+      height: calc(100vh - var(--top-height) - 32px);
+      padding-top: 12px; display: flex; flex-direction: column; gap: 2px;
+    }
+    .nav-btn {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 14px; border-radius: 12px; font-weight: 800;
+      color: var(--text); transition: background 0.2s, color 0.2s;
+      text-align: left; width: 100%;
+    }
+    .nav-btn:hover, .nav-btn.active { background: var(--sidebar-hover); color: var(--brand); }
+    .nav-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+    .logout-btn { margin-top: auto; border-top: 1px solid var(--line); padding-top: 18px; }
+    .feed-area { flex: 1; min-width: 0; max-width: 700px; padding: 16px 0 100px; }
+
+    .video-card {
+      background: var(--card-bg); border-radius: 0;
+      margin-bottom: 24px; padding: 0; animation: cardRise 0.4s ease both;
+    }
+    @keyframes cardRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .video-playback-error {
+      position: absolute;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      z-index: 20;
+      background: rgba(0,0,0,.82);
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 85%;
+      font-size: 13px;
+    }
+    .video-playback-error button {
+      display: block;
+      margin: 8px auto 0;
+      border: 0;
+      border-radius: 8px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    .video-stage {
+      position: relative; background: #000; border-radius: 0;
+      overflow: hidden; display: flex; justify-content: center;
+      width: 100%; aspect-ratio: 9 / 16; max-height: 85vh; margin: 0 auto;
+    }
+    .video-stage video {
+      display: block; width: 100%; height: 100%; object-fit: cover;
+      background: #000; border-radius: 0;
+    }
+    .video-stage.video-load-error::after {
+      content: "Video could not be loaded";
+      position: absolute; inset: 0; display: grid; place-items: center;
+      color: #fff; background: #111; font-weight: 800; pointer-events: none;
+    }
+    .video-overlay {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      padding: 80px 100px 16px 16px; color: #fff;
+      background: var(--overlay-grad); pointer-events: none; border-radius: 0;
+    }
+    .video-overlay > * { pointer-events: auto; }
+    .video-user { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    .video-user img { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; cursor: pointer; }
+    .video-user strong { font-size: 15px; cursor: pointer; }
+    .video-user button {
+      background: #fff; color: #111; border-radius: 20px;
+      padding: 5px 14px; font-weight: 800; font-size: 12px; margin-left: 6px;
+    }
+    .video-user button.following { background: #222; color: #fff; }
+    .video-caption { font-size: 14px; line-height: 1.4; margin-bottom: 4px; }
+    .tags { font-size: 13px; font-weight: 700; opacity: 0.95; }
+    .views-line { font-size: 11px; color: #ccc; margin-top: 4px; }
+
+    .video-actions {
+      position: absolute; right: 10px; bottom: 30px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px; z-index: 6;
+    }
+    .action {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      color: #fff; font-size: 11px; font-weight: 800;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6); transition: transform 0.15s;
+    }
+    .action:active { transform: scale(0.92); }
+    .action svg { width: 28px; height: 28px; }
+    .action.liked { color: #fe2c55; }
+    .action.liked svg { fill: #fe2c55; stroke: #fe2c55; }
+
+    .rightbar { width: 260px; flex-shrink: 0; padding-top: 16px; display: flex; flex-direction: column; gap: 16px; }
+    .side-card { background: var(--card-bg); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+    .profile-preview { display: flex; gap: 12px; align-items: center; }
+    .profile-preview img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
+    .stats { display: grid; grid-template-columns: repeat(3,1fr); text-align: center; margin-top: 14px; }
+    .stats strong { font-size: 18px; display: block; }
+    .stats span { font-size: 11px; color: var(--muted); }
+    .section-title { font-size: 14px; font-weight: 800; margin-bottom: 10px; }
+    .user-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+    .user-row img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
+    .user-row .grow { flex: 1; }
+    .user-row .grow strong { font-size: 14px; display: block; }
+    .user-row .grow .muted { font-size: 12px; }
+    .user-row button {
+      font-size: 12px; padding: 6px 12px; border-radius: 20px;
+      background: var(--sidebar-hover); color: var(--brand); font-weight: 800;
+    }
+
+    .bottom-nav {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0;
+      height: var(--nav-height); background: var(--card-bg);
+      border-top: 1px solid var(--line); z-index: 45;
+      justify-content: space-around; align-items: center;
+      padding: 0 6px; padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .bottom-nav button {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      background: transparent; padding: 6px 8px; border-radius: 12px;
+      transition: color 0.2s; min-width: 56px;
+    }
+    .bottom-nav button.active { color: var(--brand); }
+    .bottom-nav svg { width: 22px; height: 22px; }
+
+    .fullpage-view {
+      position: fixed; inset: 0; background: var(--bg); z-index: 300;
+      display: none; flex-direction: column; overflow-y: auto;
+      padding: 0 16px 40px; animation: fadeSlideUp 0.25s ease;
+    }
+    .fullpage-view.open { display: flex; }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fullpage-header {
+      display: flex; align-items: center; gap: 12px; height: var(--top-height);
+      flex-shrink: 0; position: sticky; top: 0; background: var(--bg);
+      z-index: 10; border-bottom: 1px solid var(--line);
+    }
+    .fullpage-header .back-btn {
+      width: 42px; height: 42px; border-radius: 50%; background: var(--input-bg);
+      display: grid; place-items: center; font-size: 22px; flex-shrink: 0;
+    }
+    .fullpage-header h2 { font-size: 20px; font-weight: 800; }
+    .fullpage-content { flex: 1; max-width: 600px; margin: 0 auto; width: 100%; padding: 20px 0 60px; }
+
+    .video-player-full {
+      position: fixed; inset: 0; background: #000; z-index: 500;
+      display: none; flex-direction: column; animation: fadeIn 0.2s ease;
+    }
+    .video-player-full.open { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .video-player-full .close-player {
+      position: absolute; top: 16px; left: 16px; width: 44px; height: 44px;
+      border-radius: 50%; background: rgba(255,255,255,0.15); color: #fff;
+      display: grid; place-items: center; font-size: 24px; z-index: 10; backdrop-filter: blur(8px);
+    }
+    .video-player-full video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    .video-player-full .player-overlay {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      padding: 100px 100px 30px 20px; color: #fff;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85)); pointer-events: none;
+    }
+    .video-player-full .player-overlay > * { pointer-events: auto; }
+    .player-user { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .player-user img { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
+    .player-user strong { font-size: 16px; }
+    .player-user button {
+      background: #fff; color: #111; border-radius: 20px;
+      padding: 6px 16px; font-weight: 800; font-size: 13px; margin-left: 8px;
+    }
+    .player-user button.following { background: #333; color: #fff; }
+    .player-caption { font-size: 15px; line-height: 1.4; margin-bottom: 6px; }
+    .player-tags { font-size: 14px; font-weight: 700; opacity: 0.9; }
+    .player-actions {
+      position: absolute; right: 16px; bottom: 40px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 6;
+    }
+    .player-actions .action svg { width: 34px; height: 34px; }
+    .player-actions .action { font-size: 12px; }
+
+    .profile-hero { text-align: center; }
+    .profile-hero img {
+      width: 100px; height: 100px; border-radius: 50%;
+      object-fit: cover; border: 4px solid var(--line); margin: 0 auto;
+    }
+    .profile-hero h2 { margin-top: 10px; font-size: 24px; }
+    .profile-hero .muted { font-size: 14px; }
+    .profile-link { display: inline-block; color: #6c4df6; margin: 8px 0; font-size: 14px; }
+    .profile-stats {
+      display: grid; grid-template-columns: repeat(3,1fr); margin: 18px 0;
+      border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 0;
+    }
+    .profile-stats div { text-align: center; border-right: 1px solid var(--line); }
+    .profile-stats div:last-child { border: 0; }
+    .profile-stats strong { font-size: 20px; display: block; }
+    .profile-stats small { font-size: 12px; color: var(--muted); }
+    .profile-actions { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
+    .profile-actions button { padding: 12px 24px; border-radius: 14px; font-weight: 800; font-size: 14px; }
+    .edit-btn { background: var(--input-bg); }
+    .profile-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; margin-top: 16px; }
+    .profile-grid .video-wrapper {
+      position: relative; aspect-ratio: 9/16; background: #111;
+      border-radius: 6px; overflow: hidden; cursor: pointer;
+    }
+    .profile-grid video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+    .profile-grid .delete-btn {
+      position: absolute; top: 6px; right: 6px; width: 30px; height: 30px;
+      border-radius: 50%; background: rgba(0,0,0,0.7); color: #fff;
+      display: grid; place-items: center; font-size: 16px; z-index: 5;
+    }
+
+    .studio h1 { font-size: 26px; margin-bottom: 4px; }
+    .studio-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin: 18px 0; }
+    .metric { background: var(--card-bg); border: 1px solid var(--line); border-radius: 18px; padding: 18px 14px; }
+    .metric span { font-size: 12px; color: var(--muted); }
+    .metric strong { font-size: 24px; display: block; margin-top: 6px; }
+    .progress { height: 10px; background: var(--input-bg); border-radius: 20px; overflow: hidden; margin: 10px 0; }
+    .progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), var(--brand2)); border-radius: 20px; }
+    .studio-card { background: var(--card-bg); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin-top: 14px; }
+    .notice-list .notice { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); cursor: pointer; align-items: center; }
+    .notice img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+    .notice .grow { flex: 1; }
+    .notice .grow strong { font-size: 14px; }
+    .notice .grow div { font-size: 13px; }
+
+    .empty {
+      padding: 50px 20px; text-align: center; color: var(--muted);
+      background: var(--card-bg); border: 1px dashed var(--line);
+      border-radius: 18px; margin-top: 16px;
+    }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 90px; transform: translate(-50%, 20px);
+      background: #111; color: #fff; padding: 12px 20px; border-radius: 14px;
+      opacity: 0; pointer-events: none; transition: 0.3s; z-index: 800;
+      font-size: 14px; font-weight: 600;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    .modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px); z-index: 100; display: none;
+      place-items: center; padding: 18px;
+    }
+    .modal.open { display: grid; }
+    .modal-card {
+      background: var(--modal-bg); width: min(520px, 100%);
+      max-height: 88vh; overflow-y: auto; border-radius: 24px;
+      padding: 24px; position: relative; box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+    }
+    .modal-close {
+      position: absolute; right: 16px; top: 12px; width: 36px; height: 36px;
+      border-radius: 50%; background: var(--input-bg); font-size: 22px;
+      display: grid; place-items: center; color: var(--text);
+    }
+    .modal-card h2 { margin-bottom: 16px; font-size: 22px; }
+    .modal-card input, .modal-card textarea {
+      width: 100%; padding: 14px 16px; border: 1.5px solid var(--line);
+      border-radius: 14px; margin: 6px 0; outline: none; font-size: 15px;
+      background: var(--input-bg); color: var(--text); transition: border 0.2s;
+      font-family: inherit;
+    }
+    .modal-card input:focus, .modal-card textarea:focus { border-color: var(--brand); }
+    .modal-card label.field-label {
+      display: block; font-size: 12px; font-weight: 700; color: var(--muted);
+      margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .auth-card { max-width: 400px; }
+    .auth-tabs { display: flex; background: var(--input-bg); padding: 4px; border-radius: 14px; margin: 16px 0 10px; }
+    .auth-tabs button { flex: 1; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 14px; transition: 0.2s; }
+    .auth-tabs button.active { background: var(--card-bg); box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+
+    .file-box {
+      display: block; border: 2px dashed var(--line); border-radius: 18px;
+      padding: 32px 18px; text-align: center; margin: 12px 0;
+      cursor: pointer; transition: border 0.2s, background 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .file-box:active { background: var(--soft); }
+    .file-box input { display: none; }
+    .file-box span { font-size: 16px; font-weight: 600; }
+    .file-box .preview-name { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+    .avatar-picker { display: flex; align-items: center; gap: 16px; margin: 10px 0; }
+    .avatar-picker img {
+      width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+      border: 3px solid var(--line); flex-shrink: 0;
+    }
+    .avatar-picker label {
+      display: inline-block; padding: 12px 18px; border-radius: 14px;
+      background: var(--input-bg); font-weight: 800; font-size: 14px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .avatar-picker label:active { background: var(--soft); }
+    .avatar-picker input { display: none; }
+
+    .upload-progress { margin: 14px 0; display: none; }
+    .upload-progress.show { display: block; }
+    .upload-progress .bar { height: 12px; background: var(--input-bg); border-radius: 20px; overflow: hidden; }
+    .upload-progress .bar i {
+      display: block; height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--brand), var(--brand2));
+      border-radius: 20px; transition: width 0.15s ease;
+    }
+    .upload-progress .percent { text-align: center; font-size: 14px; font-weight: 800; color: var(--brand); margin-top: 8px; }
+    .upload-progress .status { text-align: center; font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .primary {
+      background: var(--brand); color: #fff; padding: 14px 18px;
+      border-radius: 14px; font-weight: 800; font-size: 15px;
+      width: 100%; transition: opacity 0.2s;
+    }
+    .primary:active { opacity: 0.8; }
+    .primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .full { width: 100%; }
+
+    .comment-card { max-width: 580px; display: flex; flex-direction: column; max-height: 85vh; padding: 0; overflow: hidden; }
+    .comment-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--line);
+      flex-shrink: 0; background: var(--modal-bg); position: sticky; top: 0; z-index: 5;
+    }
+    .comment-header h2 { margin: 0; font-size: 20px; }
+    .comment-header .close-top {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--input-bg);
+      font-size: 22px; display: grid; place-items: center;
+    }
+    .comment-body-scroll { flex: 1; overflow-y: auto; padding: 8px 20px 0; }
+    .comment { display: flex; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .comment-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    .comment-body { flex: 1; }
+    .comment-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .comment-actions { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+    .comment-like { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--muted); transition: color 0.2s; }
+    .comment-like.liked { color: var(--brand); }
+    .comment-like svg { width: 16px; height: 16px; }
+    .comment-like.liked svg { fill: var(--brand); stroke: var(--brand); }
+    .reply { margin-top: 8px; margin-left: 14px; border-left: 2px solid var(--line); padding-left: 12px; }
+    .reply-actions { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+    .reply-like { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--muted); transition: color 0.2s; }
+    .reply-like.liked { color: var(--brand); }
+    .reply-like svg { width: 14px; height: 14px; }
+    .reply-like.liked svg { fill: var(--brand); stroke: var(--brand); }
+    .comment-reply { color: var(--brand); font-weight: 700; font-size: 12px; background: transparent; }
+    .reply-composer { display: flex; gap: 8px; margin-top: 8px; }
+    .reply-composer input { flex: 1; padding: 10px !important; margin: 0 !important; font-size: 14px; }
+    .reply-composer .primary { padding: 10px 14px; width: auto; font-size: 13px; }
+    .comment-footer {
+      padding: 12px 20px 16px; border-top: 1px solid var(--line);
+      background: var(--modal-bg); flex-shrink: 0; position: sticky; bottom: 0;
+    }
+    .comment-form { display: flex; gap: 8px; }
+    .comment-form input { margin: 0 !important; flex: 1; }
+    .comment-form .primary { width: auto; padding: 12px 20px; }
+
+    .delete-confirm {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 400; display: none; place-items: center; padding: 20px;
+    }
+    .delete-confirm.open { display: grid; }
+    .delete-confirm .box {
+      background: var(--card-bg); border-radius: 20px; padding: 24px;
+      max-width: 340px; width: 100%; text-align: center;
+    }
+    .delete-confirm .box h3 { margin-bottom: 8px; }
+    .delete-confirm .box p { color: var(--muted); margin-bottom: 20px; font-size: 14px; }
+    .delete-confirm .box .row { display: flex; gap: 10px; }
+    .delete-confirm .box .row button { flex: 1; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; }
+    .delete-confirm .box .row .cancel { background: var(--input-bg); color: var(--text); }
+    .delete-confirm .box .row .delete { background: #fe2c55; color: #fff; }
+
+    .loading-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      z-index: 900; display: none; place-items: center;
+    }
+    .loading-overlay.open { display: grid; }
+    .loading-content {
+      background: var(--card-bg); border-radius: 20px; padding: 28px 32px;
+      text-align: center; min-width: 260px; max-width: 90vw;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .loading-spinner {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 4px solid rgba(254,44,85,0.15); border-top-color: var(--brand);
+      animation: spin 0.8s linear infinite; margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-title { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
+    .loading-sub { font-size: 12px; color: var(--muted); }
+
+    .global-progress {
+      position: fixed; top: 0; left: 0; right: 0; height: 4px;
+      background: rgba(0,0,0,0.08); z-index: 1000; display: none;
+    }
+    .global-progress.show { display: block; }
+    .global-progress i {
+      display: block; height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--brand), var(--brand2));
+      transition: width 0.15s ease;
+    }
+    .sync-badge {
+      position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+      z-index: 1100; padding: 5px 10px; border-radius: 999px;
+      background: rgba(17,17,17,.88); color:#fff; font-size:11px; font-weight:800;
+      opacity:0; pointer-events:none; transition:.25s;
+    }
+    .sync-badge.show { opacity:1; }
+
+    @media (max-width: 1100px) {
+      .sidebar { display: none; }
+      .rightbar { display: none; }
+      .main { justify-content: center; padding: 0 12px; }
+      .feed-area { max-width: 100%; }
+      .top-search { max-width: 300px; }
+    }
+    @media (max-width: 720px) {
+      :root { --top-height: 56px; }
+      .topbar { padding: 0 10px; gap: 6px; }
+      .topbar .brand { font-size: 18px; }
+      .top-tabs button { padding: 6px 12px; font-size: 12px; }
+      .top-search { max-width: 160px; height: 38px; padding: 0 10px; }
+      .top-search svg { width: 17px; height: 17px; }
+      .top-search input { font-size: 12px; }
+      .avatar-btn { width: 36px; height: 36px; }
+      .main { padding-top: var(--top-height); }
+      .video-card { margin-bottom: 16px; }
+      .video-overlay { padding: 70px 80px 14px 14px; }
+      .video-user img { width: 32px; height: 32px; }
+      .video-user strong { font-size: 13px; }
+      .video-user button { font-size: 11px; padding: 4px 10px; }
+      .video-caption { font-size: 13px; }
+      .action svg { width: 26px; height: 26px; }
+      .action { font-size: 10px; gap: 1px; }
+      .video-actions { right: 6px; bottom: 24px; gap: 14px; }
+      .bottom-nav { display: flex; }
+      .studio-grid { grid-template-columns: repeat(2,1fr); }
+      .profile-grid { grid-template-columns: repeat(3,1fr); }
+      .modal-card { padding: 20px; border-radius: 20px; }
+      .splash-brand { font-size: 44px; }
+      .video-stage { max-height: 75vh; }
+      .fullpage-view { padding: 0 12px 40px; }
+      .comment-card { max-height: 92vh; }
+      .comment-header { padding: 12px 16px; }
+      .comment-body-scroll { padding: 8px 16px 0; }
+      .comment-footer { padding: 10px 16px 14px; }
+      .video-player-full .player-overlay { padding: 80px 80px 24px 16px; }
+      .player-user img { width: 38px; height: 38px; }
+      .player-user strong { font-size: 14px; }
+      .player-actions .action svg { width: 30px; height: 30px; }
+    }
+    @media (max-width: 400px) {
+      .top-tabs button { padding: 5px 8px; font-size: 11px; }
+      .topbar .brand { font-size: 15px; }
+      .top-search { max-width: 120px; height: 34px; padding: 0 8px; }
+      .top-search svg { width: 15px; height: 15px; }
+      .top-search input { font-size: 11px; }
+      .avatar-btn { width: 32px; height: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="splash"><div class="splash-brand">UOO <span>GO</span></div></div>
+
+  <div id="globalProgress" class="global-progress"><i id="globalProgressBar"></i></div>
+  <div id="syncBadge" class="sync-badge">Live sync connected</div>
+
+  <div id="app"></div>
+  <div id="toast" class="toast"></div>
+
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-title" id="loadingTitle">Loading...</div>
+      <div class="loading-sub" id="loadingSub">Please wait</div>
+    </div>
+  </div>
+
+  <div id="authModal" class="modal">
+    <div class="modal-card auth-card">
+      <button class="modal-close" onclick="closeModal('authModal')">×</button>
+      <div style="font-size:38px;font-weight:950;letter-spacing:-2px;text-align:center;margin-bottom:4px">UOO <span style="color:var(--brand)">GO</span></div>
+      <p class="muted" style="text-align:center">Create your account or login to continue.</p>
+      <div class="auth-tabs">
+        <button id="loginTab" class="active" onclick="showAuth('login')">Login</button>
+        <button id="signupTab" onclick="showAuth('signup')">Create Account</button>
+      </div>
+      <div id="authError" class="hidden" style="margin:10px 0;padding:10px 12px;border-radius:12px;background:#fff0f3;color:#c9184a;font-size:13px;font-weight:700"></div>
+      <form id="loginForm" onsubmit="login(event)">
+        <input id="loginEmail" type="email" placeholder="Email" autocomplete="email" required>
+        <input id="loginPassword" type="password" placeholder="Password (min 6)" autocomplete="current-password" required>
+        <button class="primary full" style="margin-top:10px">Login</button>
+      </form>
+      <form id="signupForm" class="hidden" onsubmit="signup(event)">
+        <input id="signupName" placeholder="Your name" maxlength="40" autocomplete="name" required>
+        <input id="signupUsername" placeholder="@username" maxlength="20" autocomplete="username" required>
+        <input id="signupEmail" type="email" placeholder="Email" autocomplete="email" required>
+        <input id="signupPassword" type="password" placeholder="Password (min 6)" minlength="6" autocomplete="new-password" required>
+        <button class="primary full" style="margin-top:10px">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="uploadModal" class="modal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeModal('uploadModal')">×</button>
+      <h2>Upload to UOO GO</h2>
+      <p class="muted">Video max 50MB. Video file → Cloudinary. Caption, hashtags and social data → Firebase. Published videos sync live to every signed-in user.</p>
+      <form onsubmit="uploadVideo(event)" id="uploadForm">
+        <label class="file-box">
+          <input id="videoFile" type="file" accept="video/*" required onchange="onVideoPick(event)">
+          <span>🎬 Choose video</span>
+          <div class="preview-name" id="videoFileName"></div>
+        </label>
+        <input id="videoCaption" placeholder="Write a caption..." maxlength="180" required>
+        <input id="videoHashtags" placeholder="#fun #uoo #viral">
+        <div class="upload-progress" id="uploadProgress">
+          <div class="bar"><i id="uploadBar"></i></div>
+          <div class="percent" id="uploadPercent">0%</div>
+          <div class="status" id="uploadStatus">Preparing upload...</div>
+        </div>
+        <button class="primary full" style="margin-top:10px" id="uploadSubmitBtn">Post Video</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="editProfileModal" class="modal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeModal('editProfileModal')">×</button>
+      <h2>Edit Profile</h2>
+      <div class="avatar-picker">
+        <img id="editAvatarPreview" src="" alt="avatar">
+        <label>
+          Change Photo
+          <input type="file" accept="image/*" onchange="onAvatarPick(event)">
+        </label>
+      </div>
+      <label class="field-label">Name</label>
+      <input id="editName" placeholder="Your name" maxlength="40">
+      <label class="field-label">Username</label>
+      <input id="editUsername" placeholder="@username" maxlength="20">
+      <label class="field-label">Bio</label>
+      <textarea id="editBio" placeholder="Short bio" maxlength="160" rows="3"></textarea>
+      <label class="field-label">Link</label>
+      <input id="editLink" placeholder="https://..." maxlength="120">
+      <div id="editProgress" class="upload-progress">
+        <div class="bar"><i id="editBar"></i></div>
+        <div class="percent" id="editPercent">0%</div>
+      </div>
+      <button class="primary full" style="margin-top:14px" id="editSaveBtn" onclick="saveProfile()">Save Changes</button>
+    </div>
+  </div>
+
+  <div id="commentModal" class="modal">
+    <div class="modal-card comment-card">
+      <div class="comment-header">
+        <h2>Comments</h2>
+        <button class="close-top" onclick="closeModal('commentModal')">×</button>
+      </div>
+      <div class="comment-body-scroll" id="commentsList"></div>
+      <div class="comment-footer">
+        <form class="comment-form" onsubmit="addComment(event)">
+          <input id="commentInput" placeholder="Write a comment..." maxlength="250" required>
+          <button class="primary">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="deleteConfirm" class="delete-confirm">
+    <div class="box">
+      <h3>Delete Video?</h3>
+      <p>This will remove the video from your profile and all feeds. This cannot be undone.</p>
+      <div class="row">
+        <button class="cancel" onclick="closeDeleteConfirm()">Cancel</button>
+        <button class="delete" onclick="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="searchPage" class="fullpage-view">
+    <div class="fullpage-header">
+      <button class="back-btn" onclick="closeFullPage('searchPage')">←</button>
+      <h2>Search</h2>
+    </div>
+    <div class="fullpage-content" style="padding-top:0">
+      <div style="position:sticky;top:56px;background:var(--bg);z-index:5;padding:12px 0">
+        <div class="top-search" style="max-width:100%;margin:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input id="searchInputPage" placeholder="Search creators, hashtags..." oninput="performSearch(this.value)">
+        </div>
+      </div>
+      <div id="searchResults" style="padding:0"></div>
+    </div>
+  </div>
+
+  <div id="profilePage" class="fullpage-view">
+    <div class="fullpage-header">
+      <button class="back-btn" onclick="closeFullPage('profilePage')">←</button>
+      <h2>Profile</h2>
+    </div>
+    <div class="fullpage-content" id="profilePageContent"></div>
+  </div>
+
+  <div id="studioPage" class="fullpage-view">
+    <div class="fullpage-header">
+      <button class="back-btn" onclick="closeFullPage('studioPage')">←</button>
+      <h2>Creator Studio</h2>
+    </div>
+    <div class="fullpage-content" id="studioPageContent"></div>
+  </div>
+
+  <div id="notificationsPage" class="fullpage-view">
+    <div class="fullpage-header">
+      <button class="back-btn" onclick="closeFullPage('notificationsPage')">←</button>
+      <h2>Notifications</h2>
+    </div>
+    <div class="fullpage-content" id="notificationsPageContent"></div>
+  </div>
+
+  <div id="videoPlayerFull" class="video-player-full">
+    <button class="close-player" onclick="closeFullPlayer()">←</button>
+    <video id="fullPlayerVideo" controls playsinline></video>
+    <div class="player-overlay" id="fullPlayerOverlay"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
+    import { getDatabase, ref, set, get, push, remove, onValue, update }
+      from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import {
+      getAuth, onAuthStateChanged, createUserWithEmailAndPassword,
+      signInWithEmailAndPassword, signOut, updateProfile
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5L__mrY6HIl5V5HtsRk6V-5jOJejBwME",
+      authDomain: "uoo-go.firebaseapp.com",
+      databaseURL: "https://uoo-go-default-rtdb.firebaseio.com",
+      projectId: "uoo-go",
+      storageBucket: "uoo-go.firebasestorage.app",
+      messagingSenderId: "1057670526230",
+      appId: "1:1057670526230:web:a194206848036d6ffa0c37",
+      measurementId: "G-0KMSR1HELS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    try { getAnalytics(app); } catch(e) {}
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    window._firebase = {
+      db, ref, set, get, push, remove, onValue, update,
+      auth, onAuthStateChanged, createUserWithEmailAndPassword,
+      signInWithEmailAndPassword, signOut, updateProfile
+    };
+    window._cloudinary = { CLOUD_NAME: "rkmm5vma", UPLOAD_PRESET: "uoo-go" };
+    window._firebaseReady = true;
+    document.dispatchEvent(new Event('firebase-ready'));
+  </script>
+
+  <script>
+    const ICONS = {
+      home: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>`,
+      search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>`,
+      upload: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>`,
+      bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>`,
+      user: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`,
+      studio: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16"/><path d="m7 15 4-5 3 3 5-7"/></svg>`,
+      logout: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"/></svg>`,
+      heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.8 8.7c0 5.5-8.8 10.3-8.8 10.3S3.2 14.2 3.2 8.7A4.7 4.7 0 0 1 12 6a4.7 4.7 0 0 1 8.8 2.7z"/></svg>`,
+      comment: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 11.5a8 8 0 0 1-8 8H6l-3 2 1-4.5A8 8 0 1 1 20 11.5z"/></svg>`,
+      share: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m21 3-7 18-4-8-8-4zM21 3 10 13"/></svg>`,
+      download: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg>`,
+      trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6"/></svg>`
+    };
+
+    let currentTab = "foryou";
+    let currentSection = "home";
+    let activeCommentVideo = null;
+    let searchQuery = "";
+    let pendingDeleteId = null;
+    let currentUser = null;
+    let allUsers = [];
+    let allVideos = [];
+    let allNotifications = [];
+    let appStarted = false;
+    let pendingAvatarFile = null;
+    let liveUnsubscribers = [];
+
+    const avatars = [
+      "https://i.pravatar.cc/150?img=12",
+      "https://i.pravatar.cc/150?img=32",
+      "https://i.pravatar.cc/150?img=47",
+      "https://i.pravatar.cc/150?img=56"
+    ];
+
+    function esc(s) { return String(s ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[m])); }
+    function uid(p="id") { return p + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+    function toast(t) {
+      const x = document.getElementById("toast");
+      x.textContent = t; x.classList.add("show");
+      clearTimeout(window.tt);
+      window.tt = setTimeout(() => x.classList.remove("show"), 2400);
+    }
+    function openModal(id) { document.getElementById(id).classList.add("open"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+    function formatViews(n) { return n >= 1000000 ? (n/1000000).toFixed(1)+"M" : n >= 1000 ? (n/1000).toFixed(1)+"K" : n; }
+    function openFullPage(id) { document.getElementById(id).classList.add("open"); document.body.style.overflow = "hidden"; }
+    function closeFullPage(id) { document.getElementById(id).classList.remove("open"); document.body.style.overflow = ""; }
+
+    function showLoading(title, sub) {
+      document.getElementById("loadingTitle").textContent = title || "Loading...";
+      document.getElementById("loadingSub").textContent = sub || "Please wait";
+      document.getElementById("loadingOverlay").classList.add("open");
+    }
+    function hideLoading() { document.getElementById("loadingOverlay").classList.remove("open"); }
+    function fb() { return window._firebase; }
+
+    function showSyncBadge(message = "Live sync connected") {
+      const el = document.getElementById("syncBadge");
+      if (!el) return;
+      el.textContent = message;
+      el.classList.add("show");
+      clearTimeout(window.syncTimer);
+      window.syncTimer = setTimeout(() => el.classList.remove("show"), 1800);
+    }
+
+    setTimeout(() => {
+      document.getElementById("splash").classList.add("hide");
+    }, 2000);
+
+    // ============================================================
+    // FIREBASE: LOAD
+    // ============================================================
+    async function fbLoadAll() {
+      if (!window._firebaseReady) return;
+      const { db, ref, get } = fb();
+      try {
+        // IMPORTANT: this function is called only after Firebase Auth has
+        // established a signed-in user. Reading RTDB before auth can cause
+        // "Permission denied / Missing or insufficient permissions".
+        const [usersSnap, videosSnap, notifSnap] = await Promise.all([
+          get(ref(db, "users")),
+          get(ref(db, "videos")),
+          get(ref(db, "notifications"))
+        ]);
+        allUsers = usersSnap.exists() ? Object.values(usersSnap.val()) : [];
+        allVideos = videosSnap.exists() ? Object.values(videosSnap.val()) : [];
+        allNotifications = notifSnap.exists() ? Object.values(notifSnap.val()) : [];
+      } catch (e) {
+        console.error("Firebase load error:", e);
+        throw e;
+      }
+    }
+
+    // Live listeners so all users see new videos instantly
+    function fbSubscribeLive() {
+      if (!window._firebaseReady) return;
+      const { db, ref, onValue } = fb();
+
+      const unsubVideos = onValue(ref(db, "videos"), (snap) => {
+        allVideos = snap.exists() ? Object.values(snap.val()) : [];
+        if (me()) {
+          if (currentSection === "home" && !document.getElementById("videoPlayerFull").classList.contains("open")) {
+            const main = document.getElementById("mainContent");
+            if (main) { main.innerHTML = sectionHTML(); setupFeedVideoAutoplay(); }
+          }
+        }
+      }, (error) => {
+        console.error("Videos realtime listener error:", error);
+        toast("Live video sync failed. Check Firebase Database rules.");
+      });
+      liveUnsubscribers.push(unsubVideos);
+
+      const unsubUsers = onValue(ref(db, "users"), (snap) => {
+        allUsers = snap.exists() ? Object.values(snap.val()) : [];
+        if (currentUser) {
+          const fresh = allUsers.find(u => u.id === currentUser.id);
+          if (fresh) currentUser = fresh;
+        }
+      }, (error) => {
+        console.error("Users realtime listener error:", error);
+        toast("Live profile sync failed. Check Firebase Database rules.");
+      });
+      liveUnsubscribers.push(unsubUsers);
+
+      const unsubNotif = onValue(ref(db, "notifications"), (snap) => {
+        allNotifications = snap.exists() ? Object.values(snap.val()) : [];
+      }, (error) => {
+        console.error("Notifications realtime listener error:", error);
+      });
+      liveUnsubscribers.push(unsubNotif);
+      showSyncBadge("Live sync connected");
+    }
+
+    async function fbSaveUser(user) {
+      if (!window._firebaseReady) return;
+      const { db, ref, set } = fb();
+      try { await set(ref(db, "users/" + user.id), user); }
+      catch (e) { console.error("Firebase user save error:", e); throw e; }
+    }
+    async function fbAssertWriteAccess() {
+      if (!window._firebaseReady) throw new Error("Firebase is not ready.");
+      const { db, ref, set, remove, auth } = fb();
+      if (!auth?.currentUser) throw new Error("Firebase session expired. Please log in again.");
+      const testPath = "_uooGoWriteTest/" + auth.currentUser.uid;
+      try { await set(ref(db, testPath), { ok: true, at: Date.now() }); await remove(ref(db, testPath)); }
+      catch (e) { throw new Error("Firebase Database permission denied. Publish Realtime Database Rules with auth != null, then refresh and log in again."); }
+    }
+
+    async function fbSaveVideo(video) {
+      if (!window._firebaseReady) throw new Error("Firebase is not ready.");
+      const { db, ref, set, auth } = fb();
+      if (!auth?.currentUser) throw new Error("Firebase session expired. Please log in again.");
+      try { await set(ref(db, "videos/" + video.id), video); }
+      catch (e) { console.error("Firebase video save error:", e); throw new Error("Firebase could not save this video. Check Realtime Database Rules: .write must allow authenticated users."); }
+    }
+    async function fbDeleteVideo(id) {
+      if (!window._firebaseReady) return;
+      const { db, ref, remove } = fb();
+      try { await remove(ref(db, "videos/" + id)); }
+      catch (e) { console.error("Firebase video delete error:", e); throw e; }
+    }
+    async function fbSaveNotification(n) {
+      if (!window._firebaseReady) return;
+      const { db, ref, set } = fb();
+      try { await set(ref(db, "notifications/" + n.id), n); }
+      catch (e) { console.error("Firebase notification save error:", e); throw e; }
+    }
+
+    // ============================================================
+    // CLOUDINARY UPLOAD (with progress)
+    // ============================================================
+    function uploadToCloudinary(file, onProgress, type = "video") {
+      return new Promise((resolve, reject) => {
+        const { CLOUD_NAME, UPLOAD_PRESET } = window._cloudinary;
+        const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${type}/upload`;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", UPLOAD_PRESET);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable && onProgress) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            onProgress(pct);
+          }
+        };
+        xhr.upload.onloadstart = () => { if (onProgress) onProgress(0); };
+        xhr.upload.onload = () => { if (onProgress) onProgress(100); };
+        xhr.upload.onloadend = () => {
+          const statusEl = document.getElementById("uploadStatus");
+          if (statusEl) statusEl.textContent = "Processing video on Cloudinary...";
+        };
+        xhr.timeout = 10 * 60 * 1000;
+        xhr.ontimeout = () => reject(new Error("Cloudinary took too long to respond. Please try again with a smaller video or check your internet connection."));
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              if (data.secure_url) resolve(data.secure_url);
+              else reject(new Error("No URL in response"));
+            } catch (e) { reject(new Error("Invalid response")); }
+          } else {
+            reject(new Error("Upload failed: " + xhr.status + " " + xhr.responseText));
+          }
+        };
+        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.send(formData);
+      });
+    }
+
+    async function seedDemoData() {
+      // Demo seeding intentionally disabled: never overwrite/reset real users or videos.
+      return;
+      /*
+      const demoUsers = [
+        { id:"u1", name:"Ayaan Khan", username:"ayaan_go", email:"ayaan@demo.com", password:"123456", bio:"Creator • Travel • Tech", link:"https://example.com", avatar:avatars[1], followers:["u2"], following:["u2"] },
+        { id:"u2", name:"Sara Ali", username:"saraali", email:"sara@demo.com", password:"123456", bio:"Daily vibes ✨", link:"", avatar:avatars[2], followers:["u1"], following:["u1"] },
+        { id:"u3", name:"Hamza Malik", username:"hamza_m", email:"hamza@demo.com", password:"123456", bio:"Football & edits", link:"", avatar:avatars[3], followers:[], following:[] }
+      ];
+      const demoVideos = [
+        { id:"v1", userId:"u2", src:"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", caption:"Beautiful day 🌸 What do you think?", hashtags:["#nature","#uoo"], likes:["u1"], views:1420, created:Date.now()-86400000*2, comments:[
+          { id:"c1", userId:"u1", text:"Amazing video!", created:Date.now()-3600000, likes:[], replies:[
+            { id:"r1", userId:"u2", text:"Thank you! 😊", created:Date.now()-3000000, likes:[] }
+          ]}
+        ]},
+        { id:"v2", userId:"u3", src:"https://www.w3schools.com/html/mov_bbb.mp4", caption:"Testing my first UOO GO video!", hashtags:["#uoo","#firstvideo"], likes:[], views:890, created:Date.now()-86400000, comments:[] }
+      ];
+      for (const u of demoUsers) await fbSaveUser(u);
+      for (const v of demoVideos) await fbSaveVideo(v);
+      */
+    }
+
+    function me() { return currentUser; }
+    function user(id) { return allUsers.find(u => u.id === id) || { name: "Unknown", username: "unknown", avatar: avatars[0] }; }
+    function likedCount(id) { return allVideos.filter(v => (v.likes || []).includes(id)).length; }
+
+    async function init() {
+      if (appStarted) return;
+      appStarted = true;
+
+      if (!window._firebaseReady) {
+        await new Promise(res => {
+          document.addEventListener('firebase-ready', res, { once: true });
+          setTimeout(res, 4000);
+        });
+      }
+
+      // Do NOT read Realtime Database before Firebase Auth has established
+      // the session. With authenticated RTDB rules, that causes a permission error.
+      // Firebase Authentication is the source of truth for login/session.
+      if (!window._firebaseReady || !fb()) {
+        render();
+        showAuthError("Firebase could not initialize. Check your Firebase configuration.");
+        openModal("authModal");
+        return;
+      }
+      const { auth, onAuthStateChanged } = fb();
+      onAuthStateChanged(auth, async (firebaseUser) => {
+        if (!firebaseUser) {
+          currentUser = null;
+          render();
+          openModal("authModal");
+          return;
+        }
+
+        // Open the app immediately after Firebase Auth succeeds.
+        // Database sync/profile creation happens after the UI is already visible,
+        // so a slow/temporary RTDB permission or network issue cannot keep the
+        // user stuck on the login screen.
+        const fallbackProfile = {
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || (firebaseUser.email || "User").split("@")[0],
+          username: (firebaseUser.email || "user").split("@")[0].replace(/[^a-z0-9_]/gi, "").toLowerCase() || "user",
+          email: (firebaseUser.email || "").toLowerCase(),
+          bio: "", link: "",
+          avatar: firebaseUser.photoURL || `https://i.pravatar.cc/150?u=${encodeURIComponent(firebaseUser.uid)}`,
+          followers: [], following: [], created: Date.now()
+        };
+
+        let profile = allUsers.find(u => u.id === firebaseUser.uid) || fallbackProfile;
+        currentUser = profile;
+        closeModal("authModal");
+        hideLoading();
+        render();
+
+        if (!window._liveSubscribed) {
+          fbSubscribeLive();
+          window._liveSubscribed = true;
+        }
+
+        // Sync Firebase in the background. Do not block the logged-in UI.
+        try {
+          await fbLoadAll();
+          profile = allUsers.find(u => u.id === firebaseUser.uid) || profile;
+          if (!profile.id) profile = fallbackProfile;
+          profile.email = (firebaseUser.email || profile.email || "").toLowerCase();
+          if (!profile.name) profile.name = fallbackProfile.name;
+          if (!profile.username) profile.username = fallbackProfile.username;
+          if (!profile.avatar) profile.avatar = fallbackProfile.avatar;
+          if (!profile.followers) profile.followers = [];
+          if (!profile.following) profile.following = [];
+          currentUser = profile;
+
+          if (!allUsers.some(u => u.id === profile.id)) {
+            await fbSaveUser(profile);
+            allUsers.push(profile);
+          } else {
+            // Keep the Firebase email in sync without overwriting profile fields.
+            await fbSaveUser(profile);
+          }
+          render();
+          showSyncBadge("Account synced");
+        } catch (err) {
+          console.error("Background Firebase sync error:", err);
+          // Login stays successful even if RTDB is temporarily unavailable.
+          toast("Logged in. Firebase sync will retry when available.");
+        }
+      });
+
+      render();
+    }
+
+    function render() {
+      const app = document.getElementById("app");
+      if (!me()) {
+        app.innerHTML = `<div style="min-height:100vh;display:grid;place-items:center;text-align:center;padding:20px">
+          <div>
+            <div style="font-size:42px;font-weight:950;letter-spacing:-2px;margin-bottom:4px">UOO <span style="color:var(--brand)">GO</span></div>
+            <h2 style="margin:8px 0">Welcome to UOO GO</h2>
+            <p class="muted">Short videos. Friends. Creators.</p>
+            <button class="primary" style="max-width:280px;margin:16px auto 0" onclick="openModal('authModal')">Login / Create Account</button>
+          </div>
+        </div>`;
+        return;
+      }
+
+      app.innerHTML = `
+      <div class="app-shell">
+        <header class="topbar">
+          <div class="brand">UOO <span>GO</span></div>
+          <div class="top-tabs">
+            <button class="${currentTab==='foryou'?'active':''}" onclick="setTab('foryou')">For You</button>
+            <button class="${currentTab==='friends'?'active':''}" onclick="setTab('friends')">Friends</button>
+          </div>
+          <div class="top-search">
+            ${ICONS.search}
+            <input id="mainSearchInput" placeholder="Search..." oninput="handleMainSearch(this.value)" value="${esc(searchQuery)}">
+          </div>
+          <div class="top-actions">
+            <button class="avatar-btn" onclick="showProfilePage('${me().id}')"><img src="${esc(me().avatar)}"></button>
+          </div>
+        </header>
+
+        <div class="main">
+          <aside class="sidebar">${nav()}</aside>
+          <main class="feed-area" id="mainContent">${sectionHTML()}</main>
+          <aside class="rightbar">${rightbar()}</aside>
+        </div>
+
+        <nav class="bottom-nav">
+          <button class="${currentSection==='home'?'active':''}" onclick="showSection('home')">${ICONS.home}<small>Home</small></button>
+          <button onclick="openModal('uploadModal')">${ICONS.upload}<small>Upload</small></button>
+          <button class="${currentSection==='notifications'?'active':''}" onclick="openNotificationsPage()">${ICONS.bell}<small>Alerts</small></button>
+          <button class="${currentSection==='studio'?'active':''}" onclick="openStudioPage()">${ICONS.studio}<small>Studio</small></button>
+          <button onclick="showProfilePage('${me().id}')">${ICONS.user}<small>Profile</small></button>
+        </nav>
+      </div>`;
+      setupFeedVideoAutoplay();
+    }
+
+    function nav() {
+      return `
+      <button class="nav-btn ${currentSection==='home'?'active':''}" onclick="showSection('home')"><span class="nav-icon">${ICONS.home}</span><span>For You</span></button>
+      <button class="nav-btn" onclick="setTab('friends')"><span class="nav-icon">${ICONS.user}</span><span>Friends</span></button>
+      <button class="nav-btn" onclick="openModal('uploadModal')"><span class="nav-icon">${ICONS.upload}</span><span>Upload</span></button>
+      <button class="nav-btn ${currentSection==='notifications'?'active':''}" onclick="openNotificationsPage()"><span class="nav-icon">${ICONS.bell}</span><span>Notifications</span></button>
+      <button class="nav-btn ${currentSection==='studio'?'active':''}" onclick="openStudioPage()"><span class="nav-icon">${ICONS.studio}</span><span>Creator Studio</span></button>
+      <button class="nav-btn" onclick="showProfilePage('${me().id}')"><span class="nav-icon">${ICONS.user}</span><span>Profile</span></button>
+      <button class="nav-btn logout-btn" onclick="logout()"><span class="nav-icon">${ICONS.logout}</span><span>Logout</span></button>`;
+    }
+
+    function rightbar() {
+      const m = me();
+      const suggestions = allUsers.filter(u => u.id !== m.id && !(m.following || []).includes(u.id)).slice(0,4);
+      return `
+      <div class="side-card">
+        <div class="profile-preview">
+          <img src="${esc(m.avatar)}">
+          <div><strong>@${esc(m.username)}</strong><div class="muted">${esc(m.name)}</div></div>
+        </div>
+        <div class="stats">
+          <div><strong>${(m.following||[]).length}</strong><span>Following</span></div>
+          <div><strong>${(m.followers||[]).length}</strong><span>Followers</span></div>
+          <div><strong>${likedCount(m.id)}</strong><span>Likes</span></div>
+        </div>
+      </div>
+      <div class="side-card">
+        <h3 class="section-title">Suggested creators</h3>
+        ${suggestions.length ? suggestions.map(u => userRow(u)).join("") : "<p class='muted'>You're following everyone here.</p>"}
+      </div>`;
+    }
+
+    function userRow(u) {
+      const following = (me().following||[]).includes(u.id);
+      return `<div class="user-row">
+        <img src="${esc(u.avatar)}">
+        <div class="grow"><strong>@${esc(u.username)}</strong><div class="muted">${esc(u.name)}</div></div>
+        <button onclick="toggleFollow('${u.id}')">${following ? "Following" : "Follow"}</button>
+      </div>`;
+    }
+
+    function sectionHTML() {
+      if (currentSection === "studio") return studioHTML();
+      if (currentSection === "notifications") return notificationsHTML();
+      return homeHTML();
+    }
+
+    function homeHTML() {
+      const q = searchQuery.toLowerCase().trim();
+      let list = currentTab === "friends"
+        ? allVideos.filter(v => (me().following||[]).includes(v.userId))
+        : allVideos.slice().sort((a,b) => b.created - a.created);
+      if (q) {
+        list = list.filter(v => {
+          const u = user(v.userId);
+          return v.caption.toLowerCase().includes(q) ||
+                 v.hashtags.join(" ").toLowerCase().includes(q) ||
+                 u.username.toLowerCase().includes(q) ||
+                 u.name.toLowerCase().includes(q);
+        });
+      }
+      return `<section class="feed">
+        ${list.length ? list.map(videoCard).join("") : `<div class="empty">No videos yet. Be the first to upload!</div>`}
+      </section>`;
+    }
+
+    // Convert Cloudinary's uploaded source into a browser-friendly MP4/H.264/AAC delivery URL.
+    // This fixes black playback for videos uploaded in HEVC/H.265, WebM, etc.
+    function getVideoPlaybackUrl(src) {
+      if (!src) return src;
+      try {
+        const marker = "/video/upload/";
+        if (src.includes(marker) && !src.includes("vc_h264") && !src.includes("f_mp4")) {
+          return src.replace(marker, marker + "f_mp4,vc_h264,ac_aac,q_auto/");
+        }
+      } catch (e) {
+        console.warn("Video URL transform failed:", e);
+      }
+      return src;
+    }
+
+    function handleVideoPlaybackError(videoEl) {
+      if (!videoEl || videoEl.dataset.playbackError === "1") return;
+      videoEl.dataset.playbackError = "1";
+      const stage = videoEl.closest(".video-stage");
+      if (stage) {
+        const msg = document.createElement("div");
+        msg.className = "video-playback-error";
+        msg.textContent = "Video format is being converted. Tap reload to try again.";
+        const btn = document.createElement("button");
+        btn.textContent = "Reload video";
+        btn.onclick = () => {
+          videoEl.dataset.playbackError = "";
+          videoEl.load();
+          videoEl.play().catch(() => {});
+          msg.remove();
+        };
+        msg.appendChild(btn);
+        stage.appendChild(msg);
+      }
+    }
+
+    // Feed video card — plays inline, does NOT open full player
+    // Auto-play the visible feed video and keep audio enabled.
+    // Browsers can block audible autoplay until the user interacts with the page.
+    let feedVideoObserver = null;
+    function setupFeedVideoAutoplay() {
+      if (feedVideoObserver) feedVideoObserver.disconnect();
+      const videos = document.querySelectorAll("#mainContent .video-stage video");
+      if (!videos.length) return;
+
+      feedVideoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const video = entry.target;
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+            video.muted = false;
+            video.volume = 1;
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      }, { threshold: [0, 0.6, 1] });
+
+      videos.forEach(video => {
+        video.muted = false;
+        video.volume = 1;
+        feedVideoObserver.observe(video);
+      });
+    }
+
+    // Retry audible autoplay after any normal user interaction.
+    document.addEventListener("pointerdown", () => {
+      document.querySelectorAll("#mainContent .video-stage video").forEach(video => {
+        const r = video.getBoundingClientRect();
+        if (r.bottom > 0 && r.top < window.innerHeight) {
+          video.muted = false;
+          video.volume = 1;
+          video.play().catch(() => {});
+        }
+      });
+    }, { passive: true });
+
+    function videoCard(v) {
+      const u = user(v.userId);
+      const liked = (v.likes || []).includes(me().id);
+      const following = (me().following || []).includes(u.id);
+      const mine = v.userId === me().id;
+      return `<article class="video-card" id="video-${v.id}">
+        <div class="video-stage">
+          <video src="${esc(getVideoPlaybackUrl(v.src))}" controls autoplay playsinline preload="auto" volume="1" loop
+                 onerror="handleVideoPlaybackError(this)" onplay="event.stopPropagation()"></video>
+          <div class="video-overlay">
+            <div class="video-user">
+              <img src="${esc(u.avatar)}" onclick="showProfilePage('${u.id}')">
+              <strong onclick="showProfilePage('${u.id}')" style="cursor:pointer">@${esc(u.username)}</strong>
+              ${u.id !== me().id ? `<button class="${following ? 'following' : ''}" onclick="toggleFollow('${u.id}')">${following ? 'Following' : 'Follow'}</button>` : ""}
+            </div>
+            <div class="video-caption">${esc(v.caption)}</div>
+            <div class="tags">${v.hashtags.map(esc).join(" ")}</div>
+            <div class="views-line">${formatViews(v.views)} views</div>
+          </div>
+          <div class="video-actions">
+            <button class="action ${liked ? 'liked' : ''}" onclick="toggleLike('${v.id}')">${ICONS.heart}<span>${(v.likes||[]).length}</span></button>
+            <button class="action" onclick="openComments('${v.id}')">${ICONS.comment}<span>${(v.comments||[]).length}</span></button>
+            <button class="action" onclick="downloadVideo('${v.id}')">${ICONS.download}<span>Save</span></button>
+            <button class="action" onclick="shareVideo('${v.id}')">${ICONS.share}<span>Share</span></button>
+            ${mine
+              ? `<button class="action" onclick="askDelete('${v.id}')">${ICONS.trash}<span>Delete</span></button>`
+              : `<button class="action" onclick="showProfilePage('${u.id}')">${ICONS.user}<span>Profile</span></button>`}
+          </div>
+        </div>
+      </article>`;
+    }
+
+    function openFullPlayer(videoId) {
+      const v = allVideos.find(x => x.id === videoId);
+      if (!v) return;
+      const u = user(v.userId);
+      const liked = (v.likes || []).includes(me().id);
+      const following = (me().following || []).includes(u.id);
+      const mine = v.userId === me().id;
+
+      const videoEl = document.getElementById("fullPlayerVideo");
+      const overlay = document.getElementById("fullPlayerOverlay");
+
+      videoEl.src = getVideoPlaybackUrl(v.src);
+      videoEl.load();
+      videoEl.play().catch(() => {});
+      v.views = (v.views || 0) + 1;
+      fbSaveVideo(v);
+
+      overlay.innerHTML = `
+        <div class="player-user">
+          <img src="${esc(u.avatar)}" onclick="closeFullPlayer();showProfilePage('${u.id}')">
+          <strong onclick="closeFullPlayer();showProfilePage('${u.id}')" style="cursor:pointer">@${esc(u.username)}</strong>
+          ${u.id !== me().id ? `<button class="${following ? 'following' : ''}" onclick="toggleFollow('${u.id}');openFullPlayer('${v.id}')">${following ? 'Following' : 'Follow'}</button>` : ""}
+        </div>
+        <div class="player-caption">${esc(v.caption)}</div>
+        <div class="player-tags">${v.hashtags.map(esc).join(" ")}</div>
+        <div class="player-actions">
+          <button class="action ${liked ? 'liked' : ''}" onclick="toggleLike('${v.id}');openFullPlayer('${v.id}')">${ICONS.heart}<span>${(v.likes||[]).length}</span></button>
+          <button class="action" onclick="closeFullPlayer();openComments('${v.id}')">${ICONS.comment}<span>${(v.comments||[]).length}</span></button>
+          <button class="action" onclick="downloadVideo('${v.id}')">${ICONS.download}<span>Save</span></button>
+          <button class="action" onclick="shareVideo('${v.id}')">${ICONS.share}<span>Share</span></button>
+          ${mine
+            ? `<button class="action" onclick="closeFullPlayer();askDelete('${v.id}')">${ICONS.trash}<span>Delete</span></button>`
+            : `<button class="action" onclick="closeFullPlayer();showProfilePage('${u.id}')">${ICONS.user}<span>Profile</span></button>`}
+        </div>`;
+      document.getElementById("videoPlayerFull").classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeFullPlayer() {
+      const videoEl = document.getElementById("fullPlayerVideo");
+      videoEl.pause();
+      videoEl.src = "";
+      document.getElementById("videoPlayerFull").classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    function handleMainSearch(value) {
+      searchQuery = value;
+      currentSection = "home";
+      const main = document.getElementById("mainContent");
+      if (main) { main.innerHTML = sectionHTML(); setupFeedVideoAutoplay(); }
+    }
+
+    function closeSearchPage() { closeFullPage("searchPage"); }
+    function performSearch(query) {
+      searchQuery = query;
+      const q = query.toLowerCase().trim();
+      const resultsDiv = document.getElementById("searchResults");
+      if (!q) { resultsDiv.innerHTML = `<div class="empty">Search for creators or hashtags</div>`; return; }
+      const matchedUsers = allUsers.filter(u => u.username.toLowerCase().includes(q) || u.name.toLowerCase().includes(q));
+      const matchedVideos = allVideos.filter(v => v.caption.toLowerCase().includes(q) || v.hashtags.join(" ").toLowerCase().includes(q));
+      let html = "";
+      if (matchedUsers.length) {
+        html += `<div style="padding:12px 0 4px;font-weight:800;color:var(--muted);font-size:13px">CREATORS</div>`;
+        html += matchedUsers.map(u => `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)">
+            <img src="${esc(u.avatar)}" style="width:46px;height:46px;border-radius:50%;object-fit:cover">
+            <div style="flex:1;cursor:pointer" onclick="closeSearchPage();showProfilePage('${u.id}')">
+              <strong style="display:block;font-size:15px">@${esc(u.username)}</strong>
+              <small style="color:var(--muted);font-size:13px">${esc(u.name)}</small>
+            </div>
+            ${u.id !== me().id ? `<button style="padding:7px 14px;border-radius:20px;background:var(--sidebar-hover);color:var(--brand);font-weight:800;font-size:13px" onclick="toggleFollow('${u.id}')">${(me().following||[]).includes(u.id) ? "Following" : "Follow"}</button>` : ""}
+          </div>`).join("");
+      }
+      if (matchedVideos.length) {
+        html += `<div style="padding:16px 0 4px;font-weight:800;color:var(--muted);font-size:13px">VIDEOS</div>`;
+        html += matchedVideos.map(v => {
+          const u = user(v.userId);
+          return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="closeSearchPage();openFullPlayer('${v.id}')">
+            <div style="width:46px;height:46px;border-radius:10px;overflow:hidden;background:#111;flex-shrink:0">
+              <video src="${esc(v.src)}" style="width:100%;height:100%;object-fit:cover" muted></video>
+            </div>
+            <div style="flex:1">
+              <strong style="display:block;font-size:14px">${esc(v.caption.slice(0,50))}</strong>
+              <small style="color:var(--muted);font-size:12px">@${esc(u.username)} • ${formatViews(v.views)} views</small>
+            </div>
+          </div>`;
+        }).join("");
+      }
+      if (!matchedUsers.length && !matchedVideos.length) html = `<div class="empty">No results for "${esc(query)}"</div>`;
+      resultsDiv.innerHTML = html;
+    }
+
+    function showProfilePage(id) {
+      const u = user(id);
+      if (!u) return;
+      const mine = u.id === me().id;
+      const vids = allVideos.filter(v => v.userId === u.id);
+      document.getElementById("profilePageContent").innerHTML = `
+        <div class="profile-hero">
+          <img src="${esc(u.avatar)}">
+          <h2>${esc(u.name)}</h2>
+          <div class="muted">@${esc(u.username)}</div>
+          <p>${esc(u.bio || "No bio yet.")}</p>
+          ${u.link ? `<a class="profile-link" href="${esc(u.link)}" target="_blank" rel="noopener noreferrer">${esc(u.link)}</a>` : ""}
+          <div class="profile-stats">
+            <div><strong>${(u.following||[]).length}</strong><small>Following</small></div>
+            <div><strong>${(u.followers||[]).length}</strong><small>Followers</small></div>
+            <div><strong>${likedCount(u.id)}</strong><small>Likes</small></div>
+          </div>
+          <div class="profile-actions">
+            ${mine ? `<button class="edit-btn" onclick="openEditProfile()">Edit Profile</button>` :
+              `<button class="primary" onclick="toggleFollow('${u.id}');showProfilePage('${u.id}')">${(me().following||[]).includes(u.id) ? "Following" : "Follow"}</button>`}
+          </div>
+        </div>
+        <h3 style="margin-top:22px">Videos (${vids.length})</h3>
+        <div class="profile-grid">
+          ${vids.length ? vids.map(v => `
+            <div class="video-wrapper" onclick="openFullPlayer('${v.id}')">
+              <video src="${esc(v.src)}" preload="metadata" muted playsinline></video>
+              ${mine ? `<button class="delete-btn" onclick="event.stopPropagation();askDelete('${v.id}')" title="Delete">×</button>` : ""}
+            </div>`).join("") : "<p class='muted'>No videos yet.</p>"}
+        </div>`;
+      openFullPage("profilePage");
+    }
+
+    function openEditProfile() {
+      const u = me();
+      pendingAvatarFile = null;
+      document.getElementById("editAvatarPreview").src = u.avatar;
+      document.getElementById("editName").value = u.name || "";
+      document.getElementById("editUsername").value = u.username || "";
+      document.getElementById("editBio").value = u.bio || "";
+      document.getElementById("editLink").value = u.link || "";
+      document.getElementById("editProgress").classList.remove("show");
+      document.getElementById("editBar").style.width = "0%";
+      document.getElementById("editPercent").textContent = "0%";
+      const saveBtn = document.getElementById("editSaveBtn");
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save Changes";
+      openModal("editProfileModal");
+    }
+
+    function onAvatarPick(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { toast("Image must be under 5MB"); return; }
+      pendingAvatarFile = file;
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.getElementById("editAvatarPreview").src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveProfile() {
+      const u = me();
+      const name = document.getElementById("editName").value.trim();
+      const username = document.getElementById("editUsername").value.trim().replace(/^@/, "").toLowerCase();
+      const bio = document.getElementById("editBio").value.trim();
+      const link = document.getElementById("editLink").value.trim();
+
+      if (!name) { toast("Name required"); return; }
+      if (!username) { toast("Username required"); return; }
+      if (allUsers.some(x => x.id !== u.id && x.username === username)) {
+        toast("Username already taken"); return;
+      }
+
+      u.name = name;
+      u.username = username;
+      u.bio = bio;
+      u.link = link;
+
+      const saveBtn = document.getElementById("editSaveBtn");
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+
+      if (pendingAvatarFile) {
+        const progressEl = document.getElementById("editProgress");
+        const barEl = document.getElementById("editBar");
+        const pctEl = document.getElementById("editPercent");
+        progressEl.classList.add("show");
+        barEl.style.width = "0%";
+        pctEl.textContent = "0%";
+
+        try {
+          const url = await uploadToCloudinary(pendingAvatarFile, (pct) => {
+            barEl.style.width = pct + "%";
+            pctEl.textContent = pct + "%";
+          }, "image");
+          u.avatar = url;
+        } catch (err) {
+          console.error("Avatar Cloudinary upload failed:", err);
+          pendingAvatarFile = null;
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Save Changes";
+          toast("Profile photo upload failed. Please try again.");
+          return;
+        }
+        pendingAvatarFile = null;
+      }
+
+      try {
+        await fbSaveUser(u);
+        closeModal("editProfileModal");
+        closeFullPage("profilePage");
+        render();
+        showProfilePage(u.id);
+        toast("Profile updated");
+      } catch (err) {
+        console.error("Profile save failed:", err);
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Changes";
+        toast("Profile save failed. Check Firebase Database rules.");
+      }
+    }
+
+    function openStudioPage() {
+      document.getElementById("studioPageContent").innerHTML = studioHTML();
+      openFullPage("studioPage");
+    }
+    function studioHTML() {
+      const m = me();
+      const vids = allVideos.filter(v => v.userId === m.id);
+      const likes = vids.reduce((a,v) => a + (v.likes||[]).length, 0);
+      const views = vids.reduce((a,v) => a + (v.views||0), 0);
+      const followers = (m.followers||[]).length;
+      const pct = Math.min(100, (followers/5000)*100);
+      const likePct = Math.min(100, (likes/50000)*100);
+      const week = Date.now() - 7*86400000;
+      const weekViews = vids.filter(v => v.created >= week).reduce((a,v) => a + (v.views||0), 0);
+      return `<section class="studio">
+        <h1>Creator Studio</h1>
+        <p class="muted">Your UOO GO creator dashboard.</p>
+        <div class="studio-grid">
+          <div class="metric"><span>Total Videos</span><strong>${vids.length}</strong></div>
+          <div class="metric"><span>Total Views</span><strong>${formatViews(views)}</strong></div>
+          <div class="metric"><span>Total Likes</span><strong>${formatViews(likes)}</strong></div>
+          <div class="metric"><span>7 Day Views</span><strong>${formatViews(weekViews)}</strong></div>
+        </div>
+        <div class="studio-card">
+          <h2>Monetization progress</h2>
+          <p class="muted">Requirement: 5,000 followers + 50,000 likes</p>
+          <p>Followers: <b>${followers}</b> / 5,000</p>
+          <div class="progress"><i style="width:${pct}%"></i></div>
+          <p>Likes: <b>${likes}</b> / 50,000</p>
+          <div class="progress"><i style="width:${likePct}%"></i></div>
+          <strong>${followers >= 5000 && likes >= 50000 ? "Eligible for your configured milestone" : "Milestone not reached yet"}</strong>
+        </div>
+        <div class="studio-card">
+          <h2>My videos</h2>
+          ${vids.length ? vids.map(v => `
+            <div class="user-row">
+              <div class="grow">
+                <strong>${esc(v.caption.slice(0,55))}</strong>
+                <div class="muted">${v.views} views • ${(v.likes||[]).length} likes • ${(v.comments||[]).length} comments</div>
+              </div>
+              <button onclick="askDelete('${v.id}')" style="background:#fe2c55;color:#fff;margin-right:6px">Delete</button>
+              <button onclick="openComments('${v.id}')">Comments</button>
+            </div>`).join("") : "<p class='muted'>Upload your first video.</p>"}
+        </div>
+      </section>`;
+    }
+
+    function openNotificationsPage() {
+      const ns = allNotifications.filter(n => n.toUserId === me().id);
+      document.getElementById("notificationsPageContent").innerHTML = `
+        <section class="studio">
+          <h1>Notifications</h1>
+          <p class="muted">Likes, comments, replies and follows.</p>
+          <div class="studio-card notice-list">
+            ${ns.length ? ns.map(n => {
+              const u = user(n.fromUserId);
+              return `<div class="notice" onclick="handleNotificationClick('${n.id}')">
+                <img src="${esc(u.avatar)}">
+                <div class="grow">
+                  <strong>${esc(u.name)}</strong>
+                  <div>${esc(n.text)}</div>
+                  <small class="muted">${new Date(n.created).toLocaleString()}</small>
+                </div>
+                ${n.read ? "" : "🔵"}
+              </div>`;
+            }).join("") : "<div class='empty'>No notifications yet.</div>"}
+          </div>
+        </section>`;
+      openFullPage("notificationsPage");
+    }
+    function handleNotificationClick(id) {
+      const n = allNotifications.find(x => x.id === id);
+      if (!n) return;
+      n.read = true; fbSaveNotification(n);
+      closeFullPage("notificationsPage");
+      if (n.videoId) {
+        currentSection = "home";
+        render();
+        setTimeout(() => document.getElementById("video-" + n.videoId)?.scrollIntoView({ behavior:"smooth", block:"center" }), 200);
+      } else showProfilePage(n.fromUserId);
+    }
+
+    function setTab(t) { currentTab = t; currentSection = "home"; render(); }
+    function showSection(s) { currentSection = s; render(); }
+
+    async function toggleLike(id) {
+      const v = allVideos.find(x => x.id === id);
+      if (!v || !me()) return;
+      v.likes = v.likes || [];
+      const i = v.likes.indexOf(me().id);
+      const wasLiked = i >= 0;
+      if (wasLiked) v.likes.splice(i,1);
+      else {
+        v.likes.push(me().id);
+        const n = { id: uid("n"), toUserId: v.userId, type: "like", text: `${me().name} liked your video.`, videoId: id, commentId: null, fromUserId: me().id, created: Date.now(), read: false };
+        allNotifications.unshift(n);
+        try { await fbSaveNotification(n); } catch {
+          allNotifications = allNotifications.filter(x => x.id !== n.id);
+          if (!wasLiked) v.likes = v.likes.filter(x => x !== me().id);
+          toast("Like failed. Check Firebase rules.");
+          return;
+        }
+      }
+      try {
+        await fbSaveVideo(v);
+        render();
+      } catch (err) {
+        console.error(err);
+        if (wasLiked) v.likes.push(me().id);
+        else v.likes = v.likes.filter(x => x !== me().id);
+        toast("Like failed. Check Firebase Database rules.");
+        render();
+      }
+    }
+
+    async function toggleFollow(id) {
+      const m = me();
+      const u = user(id);
+      if (!u || !u.id || !m) return;
+      m.following = m.following || [];
+      u.followers = u.followers || [];
+      const i = m.following.indexOf(id);
+      const wasFollowing = i >= 0;
+
+      if (wasFollowing) {
+        m.following.splice(i,1);
+        u.followers = u.followers.filter(x => x !== m.id);
+      } else {
+        m.following.push(id);
+        if (!u.followers.includes(m.id)) u.followers.push(m.id);
+      }
+
+      try {
+        await Promise.all([fbSaveUser(m), fbSaveUser(u)]);
+        if (!wasFollowing) {
+          const n = { id: uid("n"), toUserId: id, type: "follow", text: `${m.name} started following you.`, videoId: null, commentId: null, fromUserId: m.id, created: Date.now(), read: false };
+          allNotifications.unshift(n);
+          try { await fbSaveNotification(n); } catch (err) { console.warn("Notification save failed:", err); }
+        }
+        render();
+        toast(wasFollowing ? "Unfollowed" : "Following");
+      } catch (err) {
+        console.error("Follow failed:", err);
+        if (wasFollowing) {
+          m.following.push(id);
+          if (!u.followers.includes(m.id)) u.followers.push(m.id);
+        } else {
+          m.following = m.following.filter(x => x !== id);
+          u.followers = u.followers.filter(x => x !== m.id);
+        }
+        toast("Follow failed. Check Firebase Database rules.");
+        render();
+      }
+    }
+
+    function askDelete(videoId) {
+      pendingDeleteId = videoId;
+      document.getElementById("deleteConfirm").classList.add("open");
+    }
+    function closeDeleteConfirm() {
+      pendingDeleteId = null;
+      document.getElementById("deleteConfirm").classList.remove("open");
+    }
+    async function confirmDelete() {
+      if (!pendingDeleteId) return;
+      const id = pendingDeleteId;
+      const target = allVideos.find(v => v.id === id);
+      if (!target || target.userId !== me()?.id) {
+        closeDeleteConfirm();
+        toast("You can only delete your own videos.");
+        return;
+      }
+      closeDeleteConfirm();
+      showLoading("Deleting video", "Please wait...");
+      try {
+        allVideos = allVideos.filter(v => v.id !== id);
+        allNotifications = allNotifications.filter(n => n.videoId !== id);
+        await fbDeleteVideo(id);
+        closeFullPage("profilePage");
+        closeFullPage("studioPage");
+        closeFullPlayer();
+        currentSection = "home";
+        render();
+        toast("Video deleted from everywhere");
+      } catch (e) {
+        console.warn(e);
+        toast("Delete failed");
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function openComments(videoId) {
+      activeCommentVideo = videoId;
+      const v = allVideos.find(x => x.id === videoId);
+      if (!v) return;
+      document.getElementById("commentsList").innerHTML = renderComments(v.comments || []);
+      openModal("commentModal");
+    }
+    function renderComments(comments) {
+      if (!comments.length) return `<div class="empty" style="margin:20px 0">No comments yet. Be the first!</div>`;
+      return comments.map(c => {
+        const u = user(c.userId);
+        const cLiked = (c.likes || []).includes(me().id);
+        return `<div class="comment">
+          <img class="comment-avatar" src="${esc(u.avatar)}">
+          <div class="comment-body">
+            <strong>@${esc(u.username)}</strong>
+            <div>${esc(c.text)}</div>
+            <div class="comment-meta">${new Date(c.created).toLocaleString()}</div>
+            <div class="comment-actions">
+              <button class="comment-like ${cLiked ? 'liked' : ''}" onclick="toggleCommentLike('${c.id}')">
+                ${ICONS.heart} <span>${(c.likes || []).length || ''}</span>
+              </button>
+              <button class="comment-reply" onclick="replyTo('${c.id}')">Reply</button>
+            </div>
+            <form id="reply-box-${c.id}" class="reply-composer hidden" onsubmit="submitReply(event,'${c.id}')">
+              <input placeholder="Write a reply..." maxlength="250" required>
+              <button class="primary">Send</button>
+            </form>
+            ${(c.replies || []).map(r => {
+              const ru = user(r.userId);
+              const rLiked = (r.likes || []).includes(me().id);
+              return `<div class="reply">
+                <strong>@${esc(ru.username)}</strong>
+                <div>${esc(r.text)}</div>
+                <small class="comment-meta">${new Date(r.created).toLocaleString()}</small>
+                <div class="reply-actions">
+                  <button class="reply-like ${rLiked ? 'liked' : ''}" onclick="toggleReplyLike('${c.id}','${r.id}')">
+                    ${ICONS.heart} <span>${(r.likes || []).length || ''}</span>
+                  </button>
+                </div>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>`;
+      }).join("");
+    }
+    function addComment(e) {
+      e.preventDefault();
+      const input = document.getElementById("commentInput");
+      const text = input.value.trim();
+      if (!text) return;
+      const v = allVideos.find(x => x.id === activeCommentVideo);
+      if (!v) return;
+      v.comments = v.comments || [];
+      v.comments.push({ id: uid("c"), userId: me().id, text, created: Date.now(), likes: [], replies: [] });
+      const n = { id: uid("n"), toUserId: v.userId, type: "comment", text: `${me().name} commented on your video.`, videoId: v.id, commentId: null, fromUserId: me().id, created: Date.now(), read: false };
+      allNotifications.unshift(n); fbSaveNotification(n);
+      fbSaveVideo(v);
+      input.value = "";
+      openComments(v.id);
+      render();
+    }
+    function replyTo(commentId) {
+      const box = document.getElementById("reply-box-" + commentId);
+      if (!box) return;
+      document.querySelectorAll(".reply-composer").forEach(x => x.classList.add("hidden"));
+      box.classList.remove("hidden");
+      box.querySelector("input").focus();
+    }
+    function submitReply(e, commentId) {
+      e.preventDefault();
+      const input = e.target.querySelector("input");
+      const text = input.value.trim();
+      if (!text) return;
+      const v = allVideos.find(x => x.id === activeCommentVideo);
+      if (!v) return;
+      const c = v.comments.find(x => x.id === commentId);
+      if (!c) return;
+      c.replies = c.replies || [];
+      c.replies.push({ id: uid("r"), userId: me().id, text, created: Date.now(), likes: [] });
+      const n = { id: uid("n"), toUserId: c.userId, type: "reply", text: `${me().name} replied to your comment.`, videoId: v.id, commentId, fromUserId: me().id, created: Date.now(), read: false };
+      allNotifications.unshift(n); fbSaveNotification(n);
+      fbSaveVideo(v);
+      openComments(v.id);
+      render();
+      toast("Reply posted");
+    }
+    function toggleCommentLike(commentId) {
+      const v = allVideos.find(x => x.id === activeCommentVideo);
+      if (!v) return;
+      const c = v.comments.find(x => x.id === commentId);
+      if (!c) return;
+      c.likes = c.likes || [];
+      const i = c.likes.indexOf(me().id);
+      if (i >= 0) c.likes.splice(i,1); else c.likes.push(me().id);
+      fbSaveVideo(v);
+      openComments(v.id);
+    }
+    function toggleReplyLike(commentId, replyId) {
+      const v = allVideos.find(x => x.id === activeCommentVideo);
+      if (!v) return;
+      const c = v.comments.find(x => x.id === commentId);
+      if (!c) return;
+      const r = c.replies.find(x => x.id === replyId);
+      if (!r) return;
+      r.likes = r.likes || [];
+      const i = r.likes.indexOf(me().id);
+      if (i >= 0) r.likes.splice(i,1); else r.likes.push(me().id);
+      fbSaveVideo(v);
+      openComments(v.id);
+    }
+
+    function downloadVideo(id) {
+      const v = allVideos.find(x => x.id === id);
+      if (!v) return;
+      const a = document.createElement("a");
+      a.href = v.src; a.download = `uoo-go-${id}.mp4`; a.target = "_blank";
+      a.click();
+    }
+    async function shareVideo(id) {
+      const url = location.href.split("#")[0] + "#video-" + id;
+      if (navigator.share) {
+        try { await navigator.share({ title:"UOO GO video", text:"Watch this on UOO GO", url }); } catch {}
+      } else {
+        await navigator.clipboard?.writeText(url);
+        toast("Video link copied");
+      }
+    }
+
+    function onVideoPick(e) {
+      const file = e.target.files[0];
+      const nameEl = document.getElementById("videoFileName");
+      if (!file) { nameEl.textContent = ""; return; }
+      nameEl.textContent = `${file.name} • ${(file.size/1024/1024).toFixed(2)} MB`;
+    }
+
+    async function uploadVideo(e) {
+      e.preventDefault();
+      if (!me()) { toast("Please login first."); openModal("authModal"); return; }
+      if (!window._firebaseReady) { toast("Firebase is not ready. Please wait."); return; }
+      const fileInput = document.getElementById("videoFile");
+      const file = fileInput.files[0];
+      if (!file) { toast("Choose a video first"); return; }
+      if (!file.type.startsWith("video/")) { toast("Please select a valid video file."); return; }
+      if (file.size > 50 * 1024 * 1024) { toast("Video must be under 50MB."); return; }
+      const caption = document.getElementById("videoCaption").value.trim();
+      if (!caption) { toast("Caption is required."); return; }
+
+      const progressEl = document.getElementById("uploadProgress");
+      const barEl = document.getElementById("uploadBar");
+      const pctEl = document.getElementById("uploadPercent");
+      const statusEl = document.getElementById("uploadStatus");
+      const submitBtn = document.getElementById("uploadSubmitBtn");
+      const globalProgress = document.getElementById("globalProgress");
+      const globalBar = document.getElementById("globalProgressBar");
+
+      progressEl.classList.add("show");
+      globalProgress.classList.add("show");
+      barEl.style.width = "0%";
+      pctEl.textContent = "0%";
+      statusEl.textContent = "Uploading to Cloudinary...";
+      globalBar.style.width = "0%";
+      submitBtn.disabled = true;
+
+      try {
+        await fbAssertWriteAccess();
+        const videoUrl = await uploadToCloudinary(file, (pct) => {
+          barEl.style.width = pct + "%";
+          pctEl.textContent = pct + "%";
+          globalBar.style.width = pct + "%";
+          if (pct >= 100) statusEl.textContent = "Processing video on Cloudinary...";
+          else statusEl.textContent = "Uploading to Cloudinary...";
+        });
+
+        barEl.style.width = "100%";
+        pctEl.textContent = "100%";
+        globalBar.style.width = "100%";
+        statusEl.textContent = "Saving to Firebase...";
+
+        const tags = document.getElementById("videoHashtags").value
+          .split(/\s+/).filter(Boolean)
+          .map(x => x.startsWith("#") ? x : "#" + x);
+        if (!videoUrl || !/^https:\/\//i.test(videoUrl)) throw new Error("Cloudinary did not return a valid video URL.");
+
+        const video = {
+          id: uid("v"), userId: me().id, src: videoUrl,
+          caption,
+          hashtags: tags, likes: [], views: 0, created: Date.now(), comments: []
+        };
+        await fbSaveVideo(video);
+        allVideos.unshift(video);
+
+        e.target.reset();
+        document.getElementById("videoFileName").textContent = "";
+        progressEl.classList.remove("show");
+        globalProgress.classList.remove("show");
+        submitBtn.disabled = false;
+        closeModal("uploadModal");
+        currentSection = "home"; currentTab = "foryou";
+        render();
+        toast("Video posted! Everyone can see it now.");
+      } catch (err) {
+        console.error("Upload error:", err);
+        progressEl.classList.remove("show");
+        globalProgress.classList.remove("show");
+        submitBtn.disabled = false;
+        const msg = String(err?.message || err || "Try again");
+        if (/PERMISSION_DENIED|permission denied|insufficient permissions/i.test(msg)) {
+          toast("Cloudinary upload ho gaya, lekin Firebase Database ne video save block kiya. Realtime Database Rules me auth != null allow karein.");
+        } else {
+          toast("Upload failed: " + msg);
+        }
+      }
+    }
+
+    function showAuthError(message) {
+      const el = document.getElementById("authError");
+      if (!el) return;
+      el.textContent = message || "";
+      el.classList.toggle("hidden", !message);
+    }
+
+    function readableAuthError(err) {
+      const code = err?.code || "";
+      const map = {
+        "auth/invalid-credential": "Email or password is incorrect.",
+        "auth/invalid-login-credentials": "Email or password is incorrect.",
+        "auth/user-not-found": "No account exists with this email.",
+        "auth/wrong-password": "Email or password is incorrect.",
+        "auth/email-already-in-use": "This email already has an account.",
+        "auth/weak-password": "Password must be at least 6 characters.",
+        "auth/invalid-email": "Please enter a valid email address.",
+        "auth/operation-not-allowed": "This sign-in method is not enabled in Firebase.",
+        "auth/network-request-failed": "Network error. Please try again.",
+        "PERMISSION_DENIED": "Firebase Database permission denied. Update your Realtime Database rules."
+      };
+      return map[code] || err?.message || "Something went wrong. Please try again.";
+    }
+
+    function usernameBase(value) {
+      return String(value || "user").toLowerCase()
+        .replace(/[^a-z0-9_]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 16) || "user";
+    }
+
+    function makeUniqueUsername(preferred) {
+      const taken = new Set(allUsers.map(u => (u.username || "").toLowerCase()));
+      const base = usernameBase(preferred);
+      if (!taken.has(base)) return base;
+      for (let i = 2; i < 10000; i++) {
+        const candidate = (base.slice(0, 16 - String(i).length) + "_" + i).slice(0, 20);
+        if (!taken.has(candidate)) return candidate;
+      }
+      return "user_" + Date.now().toString(36).slice(-8);
+    }
+
+    async function createProfileForAuthUser(firebaseUser, preferredName = "", preferredUsername = "") {
+      const name = preferredName || firebaseUser.displayName || (firebaseUser.email || "User").split("@")[0];
+      const username = makeUniqueUsername(preferredUsername || firebaseUser.displayName || name);
+      const profile = {
+        id: firebaseUser.uid,
+        name: name.slice(0, 40),
+        username,
+        email: (firebaseUser.email || "").toLowerCase(),
+        bio: "",
+        link: "",
+        avatar: firebaseUser.photoURL || `https://i.pravatar.cc/150?u=${encodeURIComponent(firebaseUser.email || firebaseUser.uid)}`,
+        followers: [],
+        following: [],
+        created: Date.now()
+      };
+      await fbSaveUser(profile);
+      allUsers.push(profile);
+      return profile;
+    }
+
+    function showAuth(type) {
+      showAuthError("");
+      document.getElementById("loginForm").classList.toggle("hidden", type !== "login");
+      document.getElementById("signupForm").classList.toggle("hidden", type !== "signup");
+      document.getElementById("loginTab").classList.toggle("active", type === "login");
+      document.getElementById("signupTab").classList.toggle("active", type === "signup");
+    }
+
+    async function login(e) {
+      e.preventDefault();
+      showAuthError("");
+      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+      const pass = document.getElementById("loginPassword").value;
+      if (!email || !pass) return;
+
+      try {
+        const { auth, signInWithEmailAndPassword } = fb();
+        await signInWithEmailAndPassword(auth, email, pass);
+        closeModal("authModal");
+        hideLoading();
+        toast("Logged in successfully.");
+      } catch (err) {
+        console.error("Login error:", err);
+        showAuthError(readableAuthError(err));
+      }
+    }
+
+    async function signup(e) {
+      e.preventDefault();
+      showAuthError("");
+
+      const email = document.getElementById("signupEmail").value.trim().toLowerCase();
+      const username = document.getElementById("signupUsername").value.trim().replace(/^@/, "").toLowerCase();
+      const name = document.getElementById("signupName").value.trim();
+      const password = document.getElementById("signupPassword").value;
+      const btn = document.querySelector("#signupForm button[type='submit']") || document.querySelector("#signupForm .primary");
+
+      if (!email || !username || !name || !password) { showAuthError("All fields are required."); return; }
+      if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+        showAuthError("Username must be 3–20 characters using letters, numbers or _."); return;
+      }
+      if (password.length < 6) { showAuthError("Password must be at least 6 characters."); return; }
+      if (!window._firebaseReady || !fb()) { showAuthError("Firebase is still loading. Please try again."); return; }
+
+      try {
+        if (btn) { btn.disabled = true; btn.textContent = "Creating Account..."; }
+
+        // Do not read RTDB before Auth. Firebase Auth creates the account first.
+        // This prevents the Create Account flow from failing with RTDB permission errors.
+        const { auth, createUserWithEmailAndPassword, updateProfile } = fb();
+        const credential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(credential.user, { displayName: name });
+
+        const profile = {
+          id: credential.user.uid,
+          name,
+          username,
+          email,
+          bio: "",
+          link: "",
+          avatar: `https://i.pravatar.cc/150?u=${encodeURIComponent(email)}`,
+          followers: [],
+          following: [],
+          created: Date.now()
+        };
+
+        // Save profile after successful authentication. If RTDB is temporarily
+        // unavailable, the Auth account still exists and the normal auth listener
+        // can recover the session without showing a false signup failure.
+        try {
+          await fbSaveUser(profile);
+          allUsers = allUsers.filter(u => u.id !== profile.id);
+          allUsers.push(profile);
+          currentUser = profile;
+        } catch (dbErr) {
+          console.error("Profile save after signup failed:", dbErr);
+          currentUser = profile;
+          toast("Account created. Profile sync will retry when Firebase is available.");
+        }
+
+        closeModal("authModal");
+        hideLoading();
+        render();
+        if (!window._liveSubscribed) { fbSubscribeLive(); window._liveSubscribed = true; }
+        if (btn) { btn.disabled = false; btn.textContent = "Create Account"; }
+      } catch (err) {
+        console.error("Signup error:", err);
+        showAuthError(readableAuthError(err));
+        if (btn) { btn.disabled = false; btn.textContent = "Create Account"; }
+      }
+    }
+
+    async function logout() {
+      try {
+        const { auth, signOut } = fb();
+        liveUnsubscribers.forEach(fn => { try { fn(); } catch {} });
+        liveUnsubscribers = [];
+        window._liveSubscribed = false;
+        await signOut(auth);
+        currentUser = null;
+        allUsers = [];
+        allVideos = [];
+        allNotifications = [];
+        closeFullPlayer();
+        closeModal("commentModal");
+        closeModal("uploadModal");
+        closeModal("editProfileModal");
+        render();
+        openModal("authModal");
+      } catch (err) {
+        console.error("Logout error:", err);
+        showAuthError(readableAuthError(err));
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+
+    window.setTab = setTab;
+    window.showSection = showSection;
+    window.toggleLike = toggleLike;
+    window.toggleFollow = toggleFollow;
+    window.openComments = openComments;
+    window.addComment = addComment;
+    window.replyTo = replyTo;
+    window.submitReply = submitReply;
+    window.toggleCommentLike = toggleCommentLike;
+    window.toggleReplyLike = toggleReplyLike;
+    window.downloadVideo = downloadVideo;
+    window.shareVideo = shareVideo;
+    window.uploadVideo = uploadVideo;
+    window.onVideoPick = onVideoPick;
+    window.login = login;
+    window.signup = signup;
+    window.logout = logout;
+    window.showAuth = showAuth;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.openFullPage = openFullPage;
+    window.closeFullPage = closeFullPage;
+    window.showProfilePage = showProfilePage;
+    window.openEditProfile = openEditProfile;
+    window.saveProfile = saveProfile;
+    window.onAvatarPick = onAvatarPick;
+    window.openStudioPage = openStudioPage;
+    window.openNotificationsPage = openNotificationsPage;
+    window.handleNotificationClick = handleNotificationClick;
+    window.askDelete = askDelete;
+    window.closeDeleteConfirm = closeDeleteConfirm;
+    window.confirmDelete = confirmDelete;
+    window.handleMainSearch = handleMainSearch;
+    window.closeSearchPage = closeSearchPage;
+    window.performSearch = performSearch;
+    window.openFullPlayer = openFullPlayer;
+    window.closeFullPlayer = closeFullPlayer;
+  </script>
+</body>
+</html>
