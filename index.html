@@ -107,6 +107,21 @@
       background: var(--card-bg); border-radius: 0;
       margin-bottom: 24px; padding: 0; animation: cardRise 0.4s ease both;
     }
+    @media (min-width: 721px) {
+      #mainContent { scroll-snap-type: y proximity; }
+      #mainContent .video-card { scroll-snap-align: start; scroll-snap-stop: always; }
+    }
+    .search-result-card {
+      display:flex; align-items:center; gap:12px; padding:12px 0;
+      border-bottom:1px solid var(--line); cursor:pointer;
+    }
+    .search-result-card:hover { background:var(--soft); border-radius:12px; padding-left:8px; padding-right:8px; }
+    .search-avatar { width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+    .search-video-thumb { width:54px; height:72px; border-radius:10px; object-fit:cover; background:#111; flex-shrink:0; }
+    .search-result-grow { flex:1; min-width:0; }
+    .search-result-grow strong { display:block; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .search-result-grow small { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+    .search-follow { padding:7px 14px; border-radius:20px; background:var(--sidebar-hover); color:var(--brand); font-weight:800; font-size:13px; flex-shrink:0; }
     @keyframes cardRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     .video-playback-error {
       position: absolute;
@@ -132,13 +147,13 @@
     }
 
     .video-stage {
-      position: relative; background: #000; border-radius: 0;
+      position: relative; background: #000; border-radius: 14px;
       overflow: hidden; display: flex; justify-content: center;
       width: 100%; aspect-ratio: 9 / 16; max-height: 85vh; margin: 0 auto;
     }
     .video-stage video {
       display: block; width: 100%; height: 100%; object-fit: cover;
-      background: #000; border-radius: 0;
+      background: #000; border-radius: 14px;
     }
     .video-stage.video-load-error::after {
       content: "Video could not be loaded";
@@ -675,7 +690,7 @@
       <div style="position:sticky;top:56px;background:var(--bg);z-index:5;padding:12px 0">
         <div class="top-search" style="max-width:100%;margin:0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-          <input id="searchInputPage" placeholder="Search creators, hashtags..." oninput="performSearch(this.value)">
+          <input id="searchInputPage" placeholder="Search username, hashtags or videos..." oninput="performSearch(this.value)">
         </div>
       </div>
       <div id="searchResults" style="padding:0"></div>
@@ -791,11 +806,33 @@
       clearTimeout(window.tt);
       window.tt = setTimeout(() => x.classList.remove("show"), 2400);
     }
-    function openModal(id) { document.getElementById(id).classList.add("open"); }
-    function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+    function openModal(id) {
+      document.getElementById(id).classList.add("open");
+      if (id === "commentModal") pauseFeedVideos();
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("open");
+      if (id === "commentModal") {
+        setTimeout(() => {
+          if (!document.querySelector(".fullpage-view.open") && currentSection === "home") {
+            setupFeedVideoAutoplay();
+          }
+        }, 0);
+      }
+    }
     function formatViews(n) { return n >= 1000000 ? (n/1000000).toFixed(1)+"M" : n >= 1000 ? (n/1000).toFixed(1)+"K" : n; }
-    function openFullPage(id) { document.getElementById(id).classList.add("open"); document.body.style.overflow = "hidden"; }
-    function closeFullPage(id) { document.getElementById(id).classList.remove("open"); document.body.style.overflow = ""; }
+    function openFullPage(id) {
+      pauseFeedVideos();
+      document.getElementById(id).classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+    function closeFullPage(id) {
+      document.getElementById(id).classList.remove("open");
+      document.body.style.overflow = "";
+      if (id === "profilePage" || id === "searchPage") {
+        setTimeout(() => { if (!document.querySelector(".fullpage-view.open") && currentSection === "home") setupFeedVideoAutoplay(); }, 0);
+      }
+    }
 
     function showLoading(title, sub) {
       document.getElementById("loadingTitle").textContent = title || "Loading...";
@@ -1096,9 +1133,9 @@
             <button class="${currentTab==='foryou'?'active':''}" onclick="setTab('foryou')">For You</button>
             <button class="${currentTab==='friends'?'active':''}" onclick="setTab('friends')">Friends</button>
           </div>
-          <div class="top-search">
+          <div class="top-search" onclick="openSearchPage()">
             ${ICONS.search}
-            <input id="mainSearchInput" placeholder="Search..." oninput="handleMainSearch(this.value)" value="${esc(searchQuery)}">
+            <input id="mainSearchInput" placeholder="Search creators or videos..." value="${esc(searchQuery)}" readonly>
           </div>
           <div class="top-actions">
             <button class="avatar-btn" onclick="showProfilePage('${me().id}')"><img src="${esc(me().avatar)}"></button>
@@ -1228,41 +1265,121 @@
     // Auto-play the visible feed video and keep audio enabled.
     // Browsers can block audible autoplay until the user interacts with the page.
     let feedVideoObserver = null;
+    let feedScrollLock = false;
+
+    function pauseFeedVideos() {
+      if (feedVideoObserver) {
+        feedVideoObserver.disconnect();
+        feedVideoObserver = null;
+      }
+      document.querySelectorAll("#mainContent .video-stage video").forEach(video => {
+        try { video.pause(); } catch (e) {}
+      });
+    }
+
     function setupFeedVideoAutoplay() {
       if (feedVideoObserver) feedVideoObserver.disconnect();
-      const videos = document.querySelectorAll("#mainContent .video-stage video");
-      if (!videos.length) return;
 
-      feedVideoObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          const video = entry.target;
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-            video.muted = false;
-            video.volume = 1;
-            video.play().catch(() => {});
-          } else {
-            video.pause();
+      const videos = [...document.querySelectorAll("#mainContent .video-stage video")];
+      if (!videos.length || document.querySelector(".fullpage-view.open") || document.getElementById("commentModal").classList.contains("open")) {
+        videos.forEach(video => { try { video.pause(); } catch (e) {} });
+        return;
+      }
+
+      let playTimer = null;
+
+      const updateVisibleVideo = () => {
+        if (document.querySelector(".fullpage-view.open") || document.getElementById("commentModal").classList.contains("open")) {
+          videos.forEach(video => { try { video.pause(); } catch (e) {} });
+          return;
+        }
+
+        let bestVideo = null;
+        let bestRatio = 0;
+
+        videos.forEach(video => {
+          const r = video.getBoundingClientRect();
+          const visibleTop = Math.max(r.top, 0);
+          const visibleBottom = Math.min(r.bottom, window.innerHeight);
+          const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+          const ratio = r.height > 0 ? visibleHeight / r.height : 0;
+
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
+            bestVideo = video;
           }
         });
-      }, { threshold: [0, 0.6, 1] });
+
+        videos.forEach(video => {
+          if (video !== bestVideo || bestRatio < 0.55) {
+            try { video.pause(); } catch (e) {}
+          }
+        });
+
+        if (bestVideo && bestRatio >= 0.55) {
+          bestVideo.muted = false;
+          bestVideo.volume = 1;
+          bestVideo.play().catch(() => {});
+        }
+      };
+
+      feedVideoObserver = new IntersectionObserver(() => {
+        clearTimeout(playTimer);
+        playTimer = setTimeout(updateVisibleVideo, 40);
+      }, { threshold: [0, 0.25, 0.55, 0.75, 1] });
 
       videos.forEach(video => {
         video.muted = false;
         video.volume = 1;
         feedVideoObserver.observe(video);
       });
+
+      updateVisibleVideo();
     }
 
-    // Retry audible autoplay after any normal user interaction.
-    document.addEventListener("pointerdown", () => {
-      document.querySelectorAll("#mainContent .video-stage video").forEach(video => {
-        const r = video.getBoundingClientRect();
-        if (r.bottom > 0 && r.top < window.innerHeight) {
-          video.muted = false;
-          video.volume = 1;
-          video.play().catch(() => {});
-        }
+    function feedVideoStep(direction) {
+      if (window.innerWidth < 721 || feedScrollLock) return;
+      if (currentSection !== "home" || document.querySelector(".fullpage-view.open") || document.getElementById("videoPlayerFull").classList.contains("open")) return;
+      const cards = [...document.querySelectorAll("#mainContent .video-card")];
+      if (!cards.length) return;
+      const viewportCenter = window.innerHeight * 0.5;
+      let currentIndex = 0;
+      let best = Infinity;
+      cards.forEach((card, i) => {
+        const r = card.getBoundingClientRect();
+        const d = Math.abs((r.top + r.height / 2) - viewportCenter);
+        if (d < best) { best = d; currentIndex = i; }
       });
+      const targetIndex = Math.max(0, Math.min(cards.length - 1, currentIndex + direction));
+      if (targetIndex === currentIndex) return;
+      feedScrollLock = true;
+      cards[targetIndex].scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(() => { feedScrollLock = false; }, 650);
+    }
+
+    // On laptop/desktop, one wheel step or one ArrowDown/ArrowUp moves exactly one video.
+    document.addEventListener("wheel", (e) => {
+      if (window.innerWidth < 721 || Math.abs(e.deltaY) < 12) return;
+      if (currentSection !== "home" || document.querySelector(".fullpage-view.open") || document.getElementById("videoPlayerFull").classList.contains("open")) return;
+      if (e.target.closest("button, input, textarea, .video-actions, .topbar")) return;
+      e.preventDefault();
+      feedVideoStep(e.deltaY > 0 ? 1 : -1);
+    }, { passive: false });
+
+    document.addEventListener("keydown", (e) => {
+      if (window.innerWidth < 721) return;
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+      if (document.activeElement && ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+      if (document.querySelector(".fullpage-view.open") || document.getElementById("videoPlayerFull").classList.contains("open")) return;
+      e.preventDefault();
+      feedVideoStep(e.key === "ArrowDown" ? 1 : -1);
+    });
+
+    // Retry autoplay after a normal user interaction.
+    // Only the video occupying most of the viewport is allowed to play.
+    document.addEventListener("pointerdown", () => {
+      if (currentSection !== "home" || document.querySelector(".fullpage-view.open") || document.getElementById("commentModal").classList.contains("open")) return;
+      setupFeedVideoAutoplay();
     }, { passive: true });
 
     function videoCard(v) {
@@ -1344,55 +1461,91 @@
     }
 
     function handleMainSearch(value) {
-      searchQuery = value;
-      currentSection = "home";
-      const main = document.getElementById("mainContent");
-      if (main) { main.innerHTML = sectionHTML(); setupFeedVideoAutoplay(); }
+      searchQuery = value || "";
+      openSearchPage();
+      const input = document.getElementById("searchInputPage");
+      if (input) { input.value = searchQuery; performSearch(searchQuery); input.focus(); }
     }
 
-    function closeSearchPage() { closeFullPage("searchPage"); }
-    function performSearch(query) {
-      searchQuery = query;
-      const q = query.toLowerCase().trim();
-      const resultsDiv = document.getElementById("searchResults");
-      if (!q) { resultsDiv.innerHTML = `<div class="empty">Search for creators or hashtags</div>`; return; }
-      const matchedUsers = allUsers.filter(u => u.username.toLowerCase().includes(q) || u.name.toLowerCase().includes(q));
-      const matchedVideos = allVideos.filter(v => v.caption.toLowerCase().includes(q) || v.hashtags.join(" ").toLowerCase().includes(q));
-      let html = "";
-      if (matchedUsers.length) {
-        html += `<div style="padding:12px 0 4px;font-weight:800;color:var(--muted);font-size:13px">CREATORS</div>`;
-        html += matchedUsers.map(u => `
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)">
-            <img src="${esc(u.avatar)}" style="width:46px;height:46px;border-radius:50%;object-fit:cover">
-            <div style="flex:1;cursor:pointer" onclick="closeSearchPage();showProfilePage('${u.id}')">
-              <strong style="display:block;font-size:15px">@${esc(u.username)}</strong>
-              <small style="color:var(--muted);font-size:13px">${esc(u.name)}</small>
-            </div>
-            ${u.id !== me().id ? `<button style="padding:7px 14px;border-radius:20px;background:var(--sidebar-hover);color:var(--brand);font-weight:800;font-size:13px" onclick="toggleFollow('${u.id}')">${(me().following||[]).includes(u.id) ? "Following" : "Follow"}</button>` : ""}
-          </div>`).join("");
+    function openSearchPage() {
+      pauseFeedVideos();
+      openFullPage("searchPage");
+      const input = document.getElementById("searchInputPage");
+      if (input) {
+        input.value = searchQuery || "";
+        setTimeout(() => input.focus(), 50);
+        performSearch(input.value);
       }
-      if (matchedVideos.length) {
-        html += `<div style="padding:16px 0 4px;font-weight:800;color:var(--muted);font-size:13px">VIDEOS</div>`;
-        html += matchedVideos.map(v => {
-          const u = user(v.userId);
-          return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="closeSearchPage();openFullPlayer('${v.id}')">
-            <div style="width:46px;height:46px;border-radius:10px;overflow:hidden;background:#111;flex-shrink:0">
-              <video src="${esc(v.src)}" style="width:100%;height:100%;object-fit:cover" muted></video>
+    }
+
+    function closeSearchPage() {
+      closeFullPage("searchPage");
+      searchQuery = "";
+      setupFeedVideoAutoplay();
+    }
+
+    function performSearch(query) {
+      searchQuery = query || "";
+      const q = searchQuery.toLowerCase().trim();
+      const resultsDiv = document.getElementById("searchResults");
+      if (!resultsDiv) return;
+      if (!q) {
+        resultsDiv.innerHTML = `<div class="empty">Search by username, name, hashtag or video caption.</div>`;
+        return;
+      }
+
+      const safeUsers = allUsers.filter(u =>
+        String(u.username || "").toLowerCase().includes(q) ||
+        String(u.name || "").toLowerCase().includes(q)
+      );
+
+      const safeVideos = allVideos.filter(v => {
+        const u = user(v.userId);
+        const caption = String(v.caption || "").toLowerCase();
+        const tags = Array.isArray(v.hashtags) ? v.hashtags.join(" ").toLowerCase() : "";
+        const username = String(u?.username || "").toLowerCase();
+        const name = String(u?.name || "").toLowerCase();
+        return caption.includes(q) || tags.includes(q) || username.includes(q) || name.includes(q);
+      });
+
+      let html = "";
+      if (safeUsers.length) {
+        html += `<div style="padding:14px 0 6px;font-weight:900;color:var(--muted);font-size:12px;letter-spacing:.6px">USERS</div>`;
+        html += safeUsers.map(u => {
+          const following = (me().following || []).includes(u.id);
+          return `<div class="search-result-card" onclick="closeSearchPage();showProfilePage('${u.id}')">
+            <img class="search-avatar" src="${esc(u.avatar)}" alt="${esc(u.username)}">
+            <div class="search-result-grow">
+              <strong>${esc(u.name || u.username)}</strong>
+              <small>@${esc(u.username)} • ${(u.followers || []).length} followers</small>
             </div>
-            <div style="flex:1">
-              <strong style="display:block;font-size:14px">${esc(v.caption.slice(0,50))}</strong>
-              <small style="color:var(--muted);font-size:12px">@${esc(u.username)} • ${formatViews(v.views)} views</small>
+            ${u.id !== me().id ? `<button class="search-follow" onclick="event.stopPropagation();toggleFollow('${u.id}');performSearch(document.getElementById('searchInputPage').value)">${following ? "Following" : "Follow"}</button>` : ""}
+          </div>`;
+        }).join("");
+      }
+
+      if (safeVideos.length) {
+        html += `<div style="padding:18px 0 6px;font-weight:900;color:var(--muted);font-size:12px;letter-spacing:.6px">VIDEOS</div>`;
+        html += safeVideos.map(v => {
+          const u = user(v.userId);
+          return `<div class="search-result-card" onclick="closeSearchPage();openFullPlayer('${v.id}')">
+            <video class="search-video-thumb" src="${esc(getVideoPlaybackUrl(v.src))}" preload="metadata" muted playsinline></video>
+            <div class="search-result-grow">
+              <strong>${esc(v.caption || "Untitled video")}</strong>
+              <small>@${esc(u?.username || "user")} • ${formatViews(v.views || 0)} views • ${(v.likes || []).length} likes</small>
             </div>
           </div>`;
         }).join("");
       }
-      if (!matchedUsers.length && !matchedVideos.length) html = `<div class="empty">No results for "${esc(query)}"</div>`;
+
+      if (!safeUsers.length && !safeVideos.length) html = `<div class="empty">No results for "${esc(searchQuery)}"</div>`;
       resultsDiv.innerHTML = html;
     }
 
     function showProfilePage(id) {
       const u = user(id);
       if (!u) return;
+      pauseFeedVideos();
       const mine = u.id === me().id;
       const vids = allVideos.filter(v => v.userId === u.id);
       document.getElementById("profilePageContent").innerHTML = `
@@ -1416,7 +1569,7 @@
         <div class="profile-grid">
           ${vids.length ? vids.map(v => `
             <div class="video-wrapper" onclick="openFullPlayer('${v.id}')">
-              <video src="${esc(v.src)}" preload="metadata" muted playsinline></video>
+              <video src="${esc(getVideoPlaybackUrl(v.src))}" preload="metadata" muted playsinline></video>
               ${mine ? `<button class="delete-btn" onclick="event.stopPropagation();askDelete('${v.id}')" title="Delete">×</button>` : ""}
             </div>`).join("") : "<p class='muted'>No videos yet.</p>"}
         </div>`;
@@ -2135,6 +2288,7 @@
     window.closeDeleteConfirm = closeDeleteConfirm;
     window.confirmDelete = confirmDelete;
     window.handleMainSearch = handleMainSearch;
+    window.openSearchPage = openSearchPage;
     window.closeSearchPage = closeSearchPage;
     window.performSearch = performSearch;
     window.openFullPlayer = openFullPlayer;
