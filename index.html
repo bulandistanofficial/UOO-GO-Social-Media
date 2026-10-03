@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="referrer" content="no-referrer-when-downgrade" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>UOO GO — Short Video Social</title>
@@ -107,6 +106,73 @@
     .video-card {
       background: var(--card-bg); border-radius: 0;
       margin-bottom: 24px; padding: 0; animation: cardRise 0.4s ease both;
+    }
+
+    .profile-hero {
+      position: relative;
+    }
+
+    .profile-top-logout {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 5;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #fe2c55;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .profile-top-logout svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .uoo-ad-slot {
+      width: 100%;
+      margin: 8px 0 24px;
+      padding: 8px 0;
+      background: var(--card-bg);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .uoo-aads-frame {
+      width: 100%;
+      margin: auto;
+      position: relative;
+      z-index: 1;
+      min-height: 90px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    @media (max-width: 720px) {
+      .profile-top-logout {
+        top: 8px;
+        right: 8px;
+        padding: 7px 10px;
+        font-size: 12px;
+      }
+
+      .profile-top-logout svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .uoo-ad-slot { margin: 6px 0 16px; }
+      .uoo-aads-frame iframe {
+        width: 92% !important;
+        min-height: 80px;
+      }
     }
     @media (min-width: 721px) {
       #mainContent { scroll-snap-type: y proximity; }
@@ -1221,8 +1287,29 @@
                  u.name.toLowerCase().includes(q);
         });
       }
+      const feedItems = list.map((video, index) => {
+        const card = videoCard(video);
+        // Show the A-ADS unit after every 4th video (4, 8, 12, ...).
+        const shouldShowAd = (index + 1) % 4 === 0 && index < list.length - 1;
+        if (!shouldShowAd) return card;
+
+        return card + `
+          <div class="uoo-ad-slot" aria-label="Advertisement">
+            <!-- BEGIN AADS AD UNIT 2457353 -->
+            <div id="frame" class="uoo-aads-frame">
+              <iframe data-aa="2457353"
+                      src="//acceptable.a-ads.com/2457353/?size=Adaptive"
+                      title="Advertisement"
+                      loading="lazy"
+                      style="border:0;padding:0;width:70%;height:auto;min-height:90px;overflow:hidden;display:block;margin:auto;">
+              </iframe>
+            </div>
+            <!-- END AADS AD UNIT 2457353 -->
+          </div>`;
+      }).join("");
+
       return `<section class="feed">
-        ${list.length ? list.map(videoCard).join("") : `<div class="empty">No videos yet. Be the first to upload!</div>`}
+        ${list.length ? feedItems : `<div class="empty">No videos yet. Be the first to upload!</div>`}
       </section>`;
     }
 
@@ -1551,6 +1638,7 @@
       const vids = allVideos.filter(v => v.userId === u.id);
       document.getElementById("profilePageContent").innerHTML = `
         <div class="profile-hero">
+          ${mine ? `<button class="profile-top-logout" onclick="logout()" aria-label="Logout">${ICONS.logout}<span>Logout</span></button>` : ""}
           <img src="${esc(u.avatar)}">
           <h2>${esc(u.name)}</h2>
           <div class="muted">@${esc(u.username)}</div>
