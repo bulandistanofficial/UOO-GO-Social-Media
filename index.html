@@ -903,6 +903,49 @@
     let appStarted = false;
     let pendingAvatarFile = null;
     let liveUnsubscribers = [];
+    // Prevent repeated view inflation during the same browser session.
+    const sessionViewedVideos = new Set();
+    const VIEW_MIN_VISIBLE_MS = 180;
+
+    function viewedStorageKey(id) { return `uoo_go_viewed_${id}`; }
+    function hasViewedThisSession(id) {
+      if (sessionViewedVideos.has(id)) return true;
+      try { return sessionStorage.getItem(viewedStorageKey(id)) === "1"; } catch (e) { return false; }
+    }
+    function markViewedThisSession(id) {
+      sessionViewedVideos.add(id);
+      try { sessionStorage.setItem(viewedStorageKey(id), "1"); } catch (e) {}
+    }
+
+    async function registerVideoView(videoId) {
+      if (!me() || !videoId || hasViewedThisSession(videoId)) return;
+      const v = allVideos.find(x => x.id === videoId);
+      if (!v) return;
+      // Mark before writing so rapid rerenders/clicks cannot create duplicate views.
+      markViewedThisSession(videoId);
+      v.views = Number(v.views || 0) + 1;
+      try {
+        await fbSaveVideo(v);
+      } catch (err) {
+        console.warn("View count save failed:", err);
+      }
+    }
+
+    function registerVisibleVideo(video) {
+      if (!video) return;
+      const id = video.dataset.videoId;
+      if (!id || hasViewedThisSession(id)) return;
+      clearTimeout(video._uooViewTimer);
+      video._uooViewTimer = setTimeout(() => {
+        if (!document.body.contains(video)) return;
+        const r = video.getBoundingClientRect();
+        const visibleTop = Math.max(r.top, 0);
+        const visibleBottom = Math.min(r.bottom, window.innerHeight);
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+        const ratio = r.height > 0 ? visibleHeight / r.height : 0;
+        if (ratio >= 0.55) registerVideoView(id);
+      }, VIEW_MIN_VISIBLE_MS);
+    }
 
     const avatars = [
       "https://i.pravatar.cc/150?img=12",
@@ -1136,7 +1179,13 @@
 
     function me() { return currentUser; }
     function user(id) { return allUsers.find(u => u.id === id) || { name: "Unknown", username: "unknown", avatar: avatars[0] }; }
-    function likedCount(id) { return allVideos.filter(v => (v.likes || []).includes(id)).length; }
+    // Creator profile "Likes" = total likes received across that creator's videos.
+    // This is different from counting which videos the viewer personally liked.
+    function likedCount(id) {
+      return allVideos
+        .filter(v => v.userId === id)
+        .reduce((total, v) => total + (Array.isArray(v.likes) ? v.likes.length : 0), 0);
+    }
 
     const COIN_PACKAGES=[{coins:100,price:100},{coins:500,price:500},{coins:1000,price:1000},{coins:5000,price:5000}];
     const COIN_SELL_RATE=0.5; // Sell/withdraw: 100 Coins = PKR 50
@@ -1478,9 +1527,31 @@
 
     function homeHTML() {
       const q = searchQuery.toLowerCase().trim();
+      const now = Date.now();
+      const followingIds = new Set(me().following || []);
+
+      // Lightweight For You ranking using the data already stored in Firebase.
+      function recommendationScore(v) {
+        const ageHours = Math.max(0, (now - Number(v.created || now)) / 3600000);
+        const likes = Array.isArray(v.likes) ? v.likes.length : 0;
+        const comments = Array.isArray(v.comments) ? v.comments.length : 0;
+        const views = Number(v.views || 0);
+        const engagement = (Math.log1p(likes) * 2.6) +
+                           (Math.log1p(comments) * 2.0) +
+                           (Math.log1p(views) * 0.8);
+        const freshness = Math.max(0, 8 - ageHours / 6);
+        const relationship = followingIds.has(v.userId) ? 9 : 0;
+        const creator = user(v.userId);
+        const creatorFollowers = Array.isArray(creator.followers) ? creator.followers.length : 0;
+        const smallCreatorBoost = creatorFollowers < 1000 ? 2 : 0;
+        return engagement + freshness + relationship + smallCreatorBoost;
+      }
+
       let list = currentTab === "friends"
-        ? allVideos.filter(v => (me().following||[]).includes(v.userId))
-        : allVideos.slice().sort((a,b) => b.created - a.created);
+        ? allVideos
+            .filter(v => followingIds.has(v.userId))
+            .sort((a,b) => b.created - a.created)
+        : allVideos.slice().sort((a,b) => recommendationScore(b) - recommendationScore(a));
       if (q) {
         list = list.filter(v => {
           const u = user(v.userId);
@@ -1623,6 +1694,7 @@
         video.muted = false;
         video.volume = 1;
         feedVideoObserver.observe(video);
+        registerVisibleVideo(video);
       });
 
       updateVisibleVideo();
@@ -1680,7 +1752,7 @@
       const mine = v.userId === me().id;
       return `<article class="video-card" id="video-${v.id}">
         <div class="video-stage">
-          <video src="${esc(getVideoPlaybackUrl(v.src))}" controls autoplay playsinline preload="auto" volume="1" loop
+          <video data-video-id="${esc(v.id)}" src="${esc(getVideoPlaybackUrl(v.src))}" controls autoplay playsinline preload="auto" volume="1" loop
                  onerror="handleVideoPlaybackError(this)" onplay="event.stopPropagation()"></video>
           <div class="video-overlay">
             <div class="video-user">
@@ -1720,8 +1792,8 @@
       videoEl.src = getVideoPlaybackUrl(v.src);
       videoEl.load();
       videoEl.play().catch(() => {});
-      v.views = (v.views || 0) + 1;
-      fbSaveVideo(v);
+      // Opening a video directly also counts as a view, but only once per session.
+      registerVideoView(v.id);
 
       overlay.innerHTML = `
         <div class="player-user">
