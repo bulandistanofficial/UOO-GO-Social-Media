@@ -1040,11 +1040,31 @@
       const { db, ref, onValue } = fb();
 
       const unsubVideos = onValue(ref(db, "videos"), (snap) => {
-        allVideos = snap.exists() ? Object.values(snap.val()) : [];
+        const incomingVideos = snap.exists() ? Object.values(snap.val()) : [];
+        const oldVideos = allVideos || [];
+
+        // IMPORTANT: Do NOT rebuild the whole feed for normal realtime video
+        // updates (likes, views, comments). Re-rendering here was making a
+        // second mobile appear to "reload" the page whenever the first mobile
+        // liked a video and it could also restart the currently playing video.
+        const oldIds = oldVideos.map(v => v.id).sort().join("|");
+        const newIds = incomingVideos.map(v => v.id).sort().join("|");
+        const videoSetChanged = oldIds !== newIds;
+
+        allVideos = incomingVideos;
+
         if (me()) {
-          if (currentSection === "home" && !document.getElementById("videoPlayerFull").classList.contains("open")) {
+          if (videoSetChanged && currentSection === "home" &&
+              !document.getElementById("videoPlayerFull").classList.contains("open")) {
             const main = document.getElementById("mainContent");
-            if (main) { main.innerHTML = sectionHTML(); setupFeedVideoAutoplay(); }
+            if (main) {
+              main.innerHTML = sectionHTML();
+              setupFeedVideoAutoplay();
+            }
+          } else if (!videoSetChanged) {
+            // Same videos: update only counters/buttons without touching the
+            // existing <video> elements or their playback position.
+            syncVideoMetaUI();
           }
         }
       }, (error) => {
@@ -1067,7 +1087,15 @@
 
       const unsubNotif = onValue(ref(db, "notifications"), (snap) => {
         allNotifications = snap.exists() ? Object.values(snap.val()) : [];
-        if (me() && currentSection === "notifications") openNotificationsPage(); else render();
+
+        // Never rebuild the entire website just because a like/follow/comment
+        // notification arrived on another device. Only the notifications
+        // page needs a full refresh; the home feed must keep its current state.
+        if (me() && currentSection === "notifications") {
+          openNotificationsPage();
+        } else {
+          syncNotificationDotUI();
+        }
       }, (error) => {
         console.error("Notifications realtime listener error:", error);
       });
@@ -1120,6 +1148,65 @@
     function verifiedBadge(u){ return u?.verified ? '<span class="verified-badge" title="Verified">✓</span>' : ''; }
     function unreadNotificationCount(){ const m=me(); return m ? allNotifications.filter(n=>n.toUserId===m.id && !n.read).length : 0; }
     function unreadNotificationDot(){ return unreadNotificationCount() ? '<span class="unread-dot"></span>' : ''; }
+
+    // Realtime like/comment/view updates must be DOM-only. Replacing
+    // #mainContent would recreate <video> elements and restart playback.
+    function syncVideoMetaUI() {
+      if (!me()) return;
+
+      allVideos.forEach(v => {
+        const card = document.getElementById("video-" + v.id);
+        if (!card) return;
+
+        const likeBtn = card.querySelector(".video-actions .action[onclick^=\"toggleLike(\"]");
+        if (likeBtn) {
+          const liked = Array.isArray(v.likes) && v.likes.includes(me().id);
+          likeBtn.classList.toggle("liked", liked);
+          const count = likeBtn.querySelector("span");
+          if (count) count.textContent = String((v.likes || []).length);
+        }
+
+        const commentBtn = card.querySelector(".video-actions .action[onclick^=\"openComments(\"]");
+        if (commentBtn) {
+          const count = commentBtn.querySelector("span");
+          if (count) count.textContent = String((v.comments || []).length);
+        }
+
+        const viewsLine = card.querySelector(".views-line");
+        if (viewsLine) viewsLine.textContent = formatViews(Number(v.views || 0)) + " views";
+      });
+
+      // If the shared/full player is currently open, update only its like
+      // counter/button as well. Do not call openFullPlayer() because that
+      // would reload the video source.
+      const full = document.getElementById("videoPlayerFull");
+      if (full?.classList.contains("open")) {
+        const playerVideo = document.getElementById("fullPlayerVideo");
+        const currentId = playerVideo?.dataset?.videoId;
+        const v = currentId ? allVideos.find(x => x.id === currentId) : null;
+        const likeBtn = document.querySelector("#fullPlayerOverlay .player-actions .action[onclick^=\"toggleLike(\"]");
+        if (v && likeBtn) {
+          const liked = Array.isArray(v.likes) && v.likes.includes(me().id);
+          likeBtn.classList.toggle("liked", liked);
+          const count = likeBtn.querySelector("span");
+          if (count) count.textContent = String((v.likes || []).length);
+        }
+      }
+    }
+
+    function syncNotificationDotUI() {
+      const navButtons = document.querySelectorAll(".bottom-nav button");
+      if (!navButtons.length) return;
+      const alertButton = navButtons[2];
+      if (!alertButton) return;
+      const existing = alertButton.querySelector(".unread-dot");
+      const shouldShow = unreadNotificationCount() > 0;
+      if (shouldShow && !existing) {
+        alertButton.insertAdjacentHTML("beforeend", '<span class="unread-dot"></span>');
+      } else if (!shouldShow && existing) {
+        existing.remove();
+      }
+    }
 
     // ============================================================
     // CLOUDINARY UPLOAD (with progress)
@@ -1827,6 +1914,7 @@
       const videoEl = document.getElementById("fullPlayerVideo");
       const overlay = document.getElementById("fullPlayerOverlay");
 
+      videoEl.dataset.videoId = v.id;
       videoEl.pause();
       videoEl.src = getVideoPlaybackUrl(v.src);
       videoEl.load();
@@ -1867,6 +1955,7 @@
       videoEl.removeAttribute("src");
       videoEl.load();
       videoEl.currentTime = 0;
+      delete videoEl.dataset.videoId;
       document.getElementById("videoPlayerFull")?.classList.remove("open");
       document.body.style.overflow = "";
 
@@ -2328,13 +2417,15 @@
       }
       try {
         await fbSaveVideo(v);
-        render();
+        syncVideoMetaUI();
+        syncNotificationDotUI();
       } catch (err) {
         console.error(err);
         if (wasLiked) v.likes.push(me().id);
         else v.likes = v.likes.filter(x => x !== me().id);
         toast("Like failed. Check Firebase Database rules.");
-        render();
+        syncVideoMetaUI();
+        syncNotificationDotUI();
       }
     }
 
