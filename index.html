@@ -1857,13 +1857,32 @@
       document.body.style.overflow = "hidden";
     }
 
-    function closeFullPlayer() {
+    function closeFullPlayer(options = {}) {
       const videoEl = document.getElementById("fullPlayerVideo");
-      videoEl.pause();
+      if (!videoEl) return;
+
+      // Always stop and completely detach the full-screen player first.
+      // This guarantees that no audio/video continues in the background.
+      try { videoEl.pause(); } catch (e) {}
       videoEl.removeAttribute("src");
       videoEl.load();
-      document.getElementById("videoPlayerFull").classList.remove("open");
+      videoEl.currentTime = 0;
+      document.getElementById("videoPlayerFull")?.classList.remove("open");
       document.body.style.overflow = "";
+
+      // IMPORTANT: a shared URL contains #video=<id>. Remove that hash when
+      // the player is closed so the same shared video cannot reopen when the
+      // user presses Back/returns to the feed or the app renders again.
+      // replaceState changes the URL without creating another browser-history
+      // entry, so Back goes to the actual previous page instead of reopening
+      // the video.
+      if (!options.keepSharedHash && /^#video=/.test(location.hash)) {
+        try {
+          history.replaceState(null, document.title, location.pathname + location.search);
+        } catch (e) {
+          location.hash = "";
+        }
+      }
 
       // Resume only the visible feed video after the full player is closed.
       if (currentSection === "home" && !document.querySelector(".fullpage-view.open")) {
@@ -2245,10 +2264,22 @@
       render();
     }
 
+    let sharedVideoOpenId = null;
+    let sharedVideoOpenTimer = null;
+
     function handleSharedVideoLink(){
       const match = location.hash.match(/^#video=(.+)$/);
       if(!match) return;
-      const id = decodeURIComponent(match[1]);
+
+      let id = "";
+      try { id = decodeURIComponent(match[1]); } catch (e) { id = match[1]; }
+      if(!id) return;
+
+      // Prevent duplicate opens when Firebase/rendering causes the UI to update
+      // while the same shared link is still being resolved.
+      if(sharedVideoOpenId === id && document.getElementById("videoPlayerFull")?.classList.contains("open")) return;
+      sharedVideoOpenId = id;
+      if(sharedVideoOpenTimer) clearTimeout(sharedVideoOpenTimer);
 
       // Wait for Firebase/live data if the link is opened before videos finish loading.
       let tries = 0;
@@ -2260,7 +2291,15 @@
           openFullPlayer(id);
           return;
         }
-        if(tries < 30) setTimeout(tryOpen, 250);
+        if(tries < 40) {
+          sharedVideoOpenTimer = setTimeout(tryOpen, 250);
+        } else {
+          sharedVideoOpenId = null;
+          try {
+            history.replaceState(null, document.title, location.pathname + location.search);
+          } catch (e) {}
+          toast("This video is no longer available.");
+        }
       };
       tryOpen();
     }
